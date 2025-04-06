@@ -26,17 +26,6 @@ class MoeViewModel() : ViewModel() {
                     DesktopUtils.openFile(file)
                 })
         })
-
-        val files2 =
-            (desktopFolder.listFiles()?.toMutableList() ?: mutableListOf()).toMutableStateList()
-        desktopItems.addAll(files.map { file ->
-            Item(file.nameWithoutExtension,
-                SystemIconUtils.getSystemIconImage(file.path)!!,
-                file.toURI().toString(),
-                open = {
-                    DesktopUtils.openFile(file)
-                })
-        })
     }
 
     fun addItemToBottomPanel(item: Item) {
