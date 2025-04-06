@@ -1,41 +1,42 @@
 package com.github.catomon.moewpaper.ui
 
-import androidx.compose.foundation.ContextMenuArea
-import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.mohamedrejeb.compose.dnd.DragAndDropState
+import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun BottomPanel(state: MoeViewModel, items: MutableList<Item>, modifier: Modifier = Modifier) {
-    LazyRow(
-        modifier.fillMaxWidth().height(125.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+fun ItemsGridList(
+    items: MutableList<Item>,
+    modifier: Modifier = Modifier,
+    dragAndDropState: DragAndDropState<Item>
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(110.dp),
+        modifier,
+        horizontalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        if (items.isEmpty()) {
-            item {
-                Text("Drag and drop items here", fontSize = 32.sp, color = Color.White)
-            }
-        } else items(items) { item ->
+        items(items) { item ->
             TooltipArea(
                 tooltip = {
                     Box(
@@ -53,13 +54,12 @@ fun BottomPanel(state: MoeViewModel, items: MutableList<Item>, modifier: Modifie
                     offset = DpOffset(16.dp, 16.dp)
                 ), delayMillis = 300
             ) {
-                ContextMenuArea(items = {
-                    listOf(ContextMenuItem("Remove", onClick = {
-                        state.bottomBarItems.removeIf { it == item }
-                    }))
-                }) {
-
-                    ItemButton(item)
+                DraggableItem(
+                    state = dragAndDropState,
+                    key = item.uri,
+                    data = item
+                ) {
+                    ItemButton(item, Modifier.padding(vertical = 4.dp).background(color = Color(939524096), shape = RoundedCornerShape(12.dp)).padding(0.dp))
                 }
             }
         }

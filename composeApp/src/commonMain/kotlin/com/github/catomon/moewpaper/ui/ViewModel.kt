@@ -1,5 +1,6 @@
 package com.github.catomon.moewpaper.ui
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import com.github.catomon.moewpaper.desktopFolder
@@ -8,11 +9,11 @@ import com.github.catomon.moewpaper.utils.SystemIconUtils
 
 class MoeViewModel() : ViewModel() {
 
-    val bottomBarItems = mutableListOf<Item>()
+    val bottomBarItems = mutableStateListOf<Item>()
 
-    val homeItems = mutableListOf<Item>()
+    val homeItems = mutableStateListOf<Item>()
 
-    val desktopItems = mutableListOf<Item>()
+    val desktopItems = mutableStateListOf<Item>()
 
     init {
         val files =
@@ -26,9 +27,20 @@ class MoeViewModel() : ViewModel() {
                 })
         })
 
-        val names = listOf("Overwatch", "Telegram", "discord", "osu!(lazer)", "Android", "IntelliJ", "Kagamin", "Alice - Madness Returns", "Little Misfortune", "XCOM 2", "Mine", "SAI2", "YukiNotes")
-        bottomBarItems.addAll(
-            desktopItems.filter { names.any { name -> it.name.startsWith(name) } }
-        )
+        val files2 =
+            (desktopFolder.listFiles()?.toMutableList() ?: mutableListOf()).toMutableStateList()
+        desktopItems.addAll(files.map { file ->
+            Item(file.nameWithoutExtension,
+                SystemIconUtils.getSystemIconImage(file.path)!!,
+                file.toURI().toString(),
+                open = {
+                    DesktopUtils.openFile(file)
+                })
+        })
+    }
+
+    fun addItemToBottomPanel(item: Item) {
+        bottomBarItems.removeIf { it.uri == item.uri }
+        bottomBarItems.add(item)
     }
 }

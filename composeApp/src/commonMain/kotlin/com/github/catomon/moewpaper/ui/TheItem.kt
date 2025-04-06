@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,13 +23,11 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.github.catomon.moewpaper.utils.DesktopUtils
-import com.github.catomon.moewpaper.utils.SystemIconUtils
 import kotlinx.coroutines.delay
 
 @Composable
-fun ItemButton(item: Item) {
-    Box(Modifier.padding(12.dp).size(86.dp), contentAlignment = Alignment.Center) {
+fun ItemButton(item: Item, modifier: Modifier = Modifier) {
+    Box(modifier.padding(12.dp).size(64.dp), contentAlignment = Alignment.Center) {
 
         var loading by remember { mutableStateOf(false) }
 
@@ -50,8 +46,8 @@ fun ItemButton(item: Item) {
 
         if (loading) {
             CircularProgressIndicator(
-                modifier = Modifier.width(64.dp),
-                color = Color.DarkGray
+                modifier = Modifier.width(48.dp),
+                color = Color.White
             )
         }
     }

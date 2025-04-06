@@ -39,6 +39,8 @@ kotlin {
             implementation(libs.composeIcons.featherIcons)
 
             implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+            implementation("com.mohamedrejeb.dnd:compose-dnd:0.3.0")
         }
 
         commonTest.dependencies {

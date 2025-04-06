@@ -1,29 +1,46 @@
 package com.github.catomon.moewpaper
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.catomon.moewpaper.theme.AppTheme
 import com.github.catomon.moewpaper.ui.BottomPanel
+import com.github.catomon.moewpaper.ui.DesktopItems
+import com.github.catomon.moewpaper.ui.Item
 import com.github.catomon.moewpaper.ui.MoeViewModel
+import com.mohamedrejeb.compose.dnd.DragAndDropContainer
+import com.mohamedrejeb.compose.dnd.drop.dropTarget
+import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
+import kotlinx.coroutines.delay
 import moe_wallpaper.composeapp.generated.resources.Res
 import moe_wallpaper.composeapp.generated.resources.`lucky bg`
 import org.jetbrains.compose.resources.painterResource
 import org.koin.java.KoinJavaComponent.get
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -32,8 +49,45 @@ internal fun App(
     modifier: Modifier = Modifier
 ) = AppTheme {
 
+    var showItems by remember { mutableStateOf(false) }
+
+    var totalDragDistance by remember { mutableStateOf(0f) }
+
+    val dragAndDropState = rememberDragAndDropState<Item>()
+
+    var dateText by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            val currentDateTime = LocalDateTime.now()
+            val formatter = DateTimeFormatter.ofPattern("h:mm a MMMM d, EEEE", Locale.ENGLISH)
+            dateText = currentDateTime.format(formatter)
+            delay(1000)
+        }
+    }
+    DragAndDropContainer(
+        state = dragAndDropState, Modifier.fillMaxSize()
+    ) {
     Box(
-        Modifier.background(color = Color(-16119286)).fillMaxSize() then modifier,
+        Modifier.background(color = Color(-16119286)).fillMaxSize() then modifier.pointerInput(Unit) {
+            detectVerticalDragGestures(
+                onDragStart = { offset ->
+                    totalDragDistance = 0f
+                },
+                onVerticalDrag = { change, dragAmount ->
+                    totalDragDistance += dragAmount
+                        if (totalDragDistance >= 300 && !showItems) {
+                            showItems = true
+                        }
+                        if (totalDragDistance <= -300 && showItems) {
+                            showItems = false
+                        }
+                },
+                onDragEnd = {
+                    totalDragDistance = 0f
+                }
+            )
+        },
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -46,16 +100,31 @@ internal fun App(
                     RoundedCornerShape(30.dp)
                 ), contentScale = ContentScale.FillHeight
             )
+
+            AnimatedVisibility(showItems) {
+                DesktopItems(state.desktopItems, Modifier.fillMaxSize(), dragAndDropState)
+            }
         }
 
         Text(
-            "4:43 April 5, Saturday",
+            dateText,
             modifier = Modifier.padding(top = 16.dp).align(Alignment.TopCenter),
             fontSize = 32.sp,
             color = Color.White
         )
 
-        BottomPanel(state.bottomBarItems, Modifier.align(Alignment.BottomCenter))
+        BottomPanel(state, state.bottomBarItems, Modifier.align(Alignment.BottomCenter).dropTarget(
+            state = dragAndDropState,
+            key = "bottom panel",
+            onDrop = { dragItemState ->
+                val item = dragItemState.data
+                state.addItemToBottomPanel(item)
+            },
+            onDragEnter = {
+
+            }
+        ))
+    }
     }
 }
 
