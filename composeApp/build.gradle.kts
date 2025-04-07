@@ -36,6 +36,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.room.runtime)
             implementation(libs.kstore)
+            implementation(libs.kstore.file)
             implementation(libs.composeIcons.featherIcons)
 
             implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))

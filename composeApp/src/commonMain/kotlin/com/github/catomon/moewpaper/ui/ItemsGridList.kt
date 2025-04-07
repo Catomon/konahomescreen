@@ -6,7 +6,9 @@ import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -31,7 +33,7 @@ fun ItemsGridList(
     dragAndDropState: DragAndDropState<Item>
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(110.dp),
+        columns = GridCells.Adaptive(124.dp),
         modifier,
         horizontalArrangement = Arrangement.Center,
         verticalArrangement = Arrangement.SpaceEvenly
@@ -52,12 +54,14 @@ fun ItemsGridList(
                     }
                 }, tooltipPlacement = TooltipPlacement.CursorPoint(
                     offset = DpOffset(16.dp, 16.dp)
-                ), delayMillis = 300
+                ), delayMillis = 300,
+                modifier = Modifier
             ) {
                 DraggableItem(
                     state = dragAndDropState,
                     key = item.uri,
-                    data = item
+                    data = item,
+                    modifier = Modifier
                 ) {
                     ItemButton(item, Modifier.padding(vertical = 4.dp).background(color = Color(939524096), shape = RoundedCornerShape(12.dp)).padding(0.dp))
                 }

@@ -20,10 +20,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
+import com.github.catomon.moewpaper.cacheFolder
 import kotlinx.coroutines.delay
+import kotlinx.serialization.Serializable
+import java.awt.Desktop
+import java.io.File
+import java.net.URI
 
 @Composable
 fun ItemButton(item: Item, modifier: Modifier = Modifier) {
@@ -38,38 +44,52 @@ fun ItemButton(item: Item, modifier: Modifier = Modifier) {
             }
         }
 
-        ItemIcon(item.icon, Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)).clickable {
-            item.open()
+        CachedIcon(item.cachedIconId, Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)).clickable {
+            ItemOpener.open(item)
 
             loading = true
         })
 
         if (loading) {
             CircularProgressIndicator(
-                modifier = Modifier.width(48.dp),
+                modifier = Modifier.width(32.dp),
                 color = Color.White
             )
         }
     }
 }
 
+object ItemOpener {
+    fun open(item: Item) {
+        val uriFormat = item.uri.substringBefore(":")
+        when (uriFormat) {
+            "file" -> {
+                Desktop.getDesktop().open(File(URI.create(item.uri)))
+            }
+
+            else -> {
+                Exception("uri not supported").printStackTrace()
+            }
+        }
+    }
+}
+
+@Serializable
 class Item(
     val name: String,
-    val icon: ImageBitmap,
+    val cachedIconId: String,
     val uri: String,
-    val open: () -> Boolean
 )
 
 @Composable
-fun ItemIcon(
-    image: ImageBitmap,
+fun CachedIcon(
+    cachedImageId: String,
     modifier: Modifier = Modifier
 ) {
-    Image(
-        image,
+    val painter = rememberAsyncImagePainter(cacheFolder.toURI().path + "/$cachedImageId", filterQuality = FilterQuality.High)
+
+    Image(painter,
         modifier = modifier,
         contentDescription = "DeskIcon",
-        contentScale = ContentScale.Crop,
-        filterQuality = FilterQuality.Medium
-    )
+        contentScale = ContentScale.Crop)
 }

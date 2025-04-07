@@ -4,5 +4,5 @@ import com.github.catomon.moewpaper.ui.MoeViewModel
 import org.koin.dsl.module
 
 val appModule = module {
-    factory { MoeViewModel() }
+    single { MoeViewModel() }
 }

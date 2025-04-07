@@ -55,7 +55,7 @@ fun BottomPanel(state: MoeViewModel, items: MutableList<Item>, modifier: Modifie
             ) {
                 ContextMenuArea(items = {
                     listOf(ContextMenuItem("Remove", onClick = {
-                        state.bottomBarItems.removeIf { it == item }
+                        state.removeItemFromBottomPanel(item)
                     }))
                 }) {
 

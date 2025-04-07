@@ -29,6 +29,7 @@ import com.github.catomon.moewpaper.ui.BottomPanel
 import com.github.catomon.moewpaper.ui.DesktopItems
 import com.github.catomon.moewpaper.ui.Item
 import com.github.catomon.moewpaper.ui.MoeViewModel
+import com.github.catomon.moewpaper.ui.Options
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
@@ -46,10 +47,12 @@ import java.util.Locale
 @Composable
 internal fun App(
     state: MoeViewModel = get(MoeViewModel::class.java),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    exitApplication: () -> Unit = { }
 ) = AppTheme {
 
     var showItems by remember { mutableStateOf(false) }
+    var showOptions by remember { mutableStateOf(false) }
 
     var totalDragDistance by remember { mutableStateOf(0f) }
 
@@ -65,66 +68,79 @@ internal fun App(
             delay(1000)
         }
     }
+
     DragAndDropContainer(
         state = dragAndDropState, Modifier.fillMaxSize()
     ) {
-    Box(
-        Modifier.background(color = Color(-16119286)).fillMaxSize() then modifier.pointerInput(Unit) {
-            detectVerticalDragGestures(
-                onDragStart = { offset ->
-                    totalDragDistance = 0f
-                },
-                onVerticalDrag = { change, dragAmount ->
-                    totalDragDistance += dragAmount
-                        if (totalDragDistance >= 300 && !showItems) {
-                            showItems = true
-                        }
-                        if (totalDragDistance <= -300 && showItems) {
-                            showItems = false
-                        }
-                },
-                onDragEnd = {
-                    totalDragDistance = 0f
-                }
-            )
-        },
-        contentAlignment = Alignment.Center
-    ) {
         Box(
-            Modifier.padding(start = 200.dp, end = 200.dp, bottom = 125.dp, top = 75.dp).clip(
-                RoundedCornerShape(30.dp)
-            ), contentAlignment = Alignment.Center
+            Modifier.background(color = Color(-16119286)).fillMaxSize() then modifier.pointerInput(
+                Unit
+            ) {
+                detectVerticalDragGestures(onDragStart = { offset ->
+                    totalDragDistance = 0f
+                }, onVerticalDrag = { change, dragAmount ->
+                    totalDragDistance += dragAmount
+                    if (totalDragDistance >= 300) {
+                        if (showOptions) {
+                            showOptions = false
+                            totalDragDistance = 0f
+                        }
+                        else if (!showItems) showItems = true
+                    }
+                    if (totalDragDistance <= -300) {
+                        if (showItems) {
+                            showItems = false
+                            totalDragDistance = 0f
+                        }
+                        else if (!showOptions) showOptions = true
+                    }
+                }, onDragEnd = {
+                    totalDragDistance = 0f
+                })
+            }, contentAlignment = Alignment.Center
         ) {
-            Image(
-                painterResource(Res.drawable.`lucky bg`), "background", modifier = Modifier.clip(
+            Box(
+                Modifier.padding(start = 200.dp, end = 200.dp, bottom = 125.dp, top = 75.dp).clip(
                     RoundedCornerShape(30.dp)
-                ), contentScale = ContentScale.FillHeight
+                ), contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painterResource(Res.drawable.`lucky bg`),
+                    "background",
+                    modifier = Modifier.clip(
+                        RoundedCornerShape(30.dp)
+                    ),
+                    contentScale = ContentScale.FillHeight
+                )
+
+                AnimatedVisibility(showItems) {
+                    DesktopItems(state.desktopItems, Modifier.fillMaxSize(), dragAndDropState)
+                }
+
+                AnimatedVisibility(showOptions) {
+                    Options(Modifier.fillMaxSize(), exitApplication = exitApplication)
+                }
+            }
+
+            Text(
+                dateText,
+                modifier = Modifier.padding(top = 16.dp).align(Alignment.TopCenter),
+                fontSize = 32.sp,
+                color = Color.White
             )
 
-            AnimatedVisibility(showItems) {
-                DesktopItems(state.desktopItems, Modifier.fillMaxSize(), dragAndDropState)
-            }
+            BottomPanel(state,
+                state.bottomBarItems,
+                Modifier.align(Alignment.BottomCenter).dropTarget(state = dragAndDropState,
+                    key = "bottom panel",
+                    onDrop = { dragItemState ->
+                        val item = dragItemState.data
+                        state.addItemToBottomPanel(item)
+                    },
+                    onDragEnter = {
+
+                    }))
         }
-
-        Text(
-            dateText,
-            modifier = Modifier.padding(top = 16.dp).align(Alignment.TopCenter),
-            fontSize = 32.sp,
-            color = Color.White
-        )
-
-        BottomPanel(state, state.bottomBarItems, Modifier.align(Alignment.BottomCenter).dropTarget(
-            state = dragAndDropState,
-            key = "bottom panel",
-            onDrop = { dragItemState ->
-                val item = dragItemState.data
-                state.addItemToBottomPanel(item)
-            },
-            onDragEnter = {
-
-            }
-        ))
-    }
     }
 }
 

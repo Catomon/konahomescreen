@@ -101,7 +101,7 @@ fun main() = application {
         })
 
         DevelopmentEntryPoint {
-            App(modifier = Modifier.padding(bottom = bottomPadding.dp))
+            App(modifier = Modifier.padding(bottom = bottomPadding.dp), exitApplication = this@application::exitApplication)
         }
     }
 }
