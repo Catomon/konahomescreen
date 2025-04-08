@@ -6,6 +6,7 @@ import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,37 +34,37 @@ fun ItemsGridList(
     dragAndDropState: DragAndDropState<Item>
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(124.dp),
+        columns = GridCells.FixedSize(100.dp),
         modifier,
         horizontalArrangement = Arrangement.Center,
-        verticalArrangement = Arrangement.SpaceEvenly
+        contentPadding = PaddingValues(vertical = 48.dp)
     ) {
         items(items) { item ->
-            TooltipArea(
-                tooltip = {
-                    Box(
-                        modifier = Modifier.background(
-                            Color.White, shape = RoundedCornerShape(8.dp)
-                        ), contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            item.name,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                    }
-                }, tooltipPlacement = TooltipPlacement.CursorPoint(
-                    offset = DpOffset(16.dp, 16.dp)
-                ), delayMillis = 300,
-                modifier = Modifier
-            ) {
-                DraggableItem(
-                    state = dragAndDropState,
-                    key = item.uri,
-                    data = item,
-                    modifier = Modifier
+            Box(Modifier.size(100.dp)) {
+                TooltipArea(
+                    tooltip = {
+                        Box(
+                            modifier = Modifier.background(
+                                Color.White, shape = RoundedCornerShape(8.dp)
+                            ), contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                item.name,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
+                    }, tooltipPlacement = TooltipPlacement.CursorPoint(
+                        offset = DpOffset(16.dp, 16.dp)
+                    ), delayMillis = 300,
                 ) {
-                    ItemButton(item, Modifier.padding(vertical = 4.dp).background(color = Color(939524096), shape = RoundedCornerShape(12.dp)).padding(0.dp))
+                    DraggableItem(
+                        state = dragAndDropState,
+                        key = item.uri,
+                        data = item,
+                    ) {
+                        ItemButton(item, Modifier.padding(vertical = 4.dp).background(color = Color(939524096), shape = RoundedCornerShape(12.dp)).padding(0.dp))
+                    }
                 }
             }
         }

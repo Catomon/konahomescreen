@@ -100,7 +100,7 @@ internal fun App(
             }, contentAlignment = Alignment.Center
         ) {
             Box(
-                Modifier.padding(start = 200.dp, end = 200.dp, bottom = 125.dp, top = 75.dp).clip(
+                Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
                     RoundedCornerShape(30.dp)
                 ), contentAlignment = Alignment.Center
             ) {
@@ -110,14 +110,14 @@ internal fun App(
                     modifier = Modifier.clip(
                         RoundedCornerShape(30.dp)
                     ),
-                    contentScale = ContentScale.FillHeight
+                    contentScale = ContentScale.FillBounds
                 )
 
-                AnimatedVisibility(showItems) {
+                AnimatedVisibility(showItems, modifier = Modifier.fillMaxSize()) {
                     DesktopItems(state.desktopItems, Modifier.fillMaxSize(), dragAndDropState)
                 }
 
-                AnimatedVisibility(showOptions) {
+                AnimatedVisibility(showOptions, modifier = Modifier.fillMaxSize()) {
                     Options(Modifier.fillMaxSize(), exitApplication = exitApplication)
                 }
             }

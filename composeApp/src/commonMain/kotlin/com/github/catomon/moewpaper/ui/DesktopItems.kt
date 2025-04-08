@@ -23,11 +23,16 @@ fun DesktopItems(
         contentAlignment = Alignment.Center,
         modifier = modifier.background(color = Color(1593835520))
     ) {
+        ItemsGridList(items, Modifier.fillMaxSize(), dragAndDropState = dragAndDropState)
 
-            ItemsGridList(items, Modifier.fillMaxSize(), dragAndDropState = dragAndDropState)
-
-
-        Text("Desktop", fontSize = 32.sp, color = Color.White, modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().background(Color(1157627905)), textAlign = TextAlign.Center,)
+        Text(
+            "Desktop",
+            fontSize = 32.sp,
+            color = Color.White,
+            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
+                .background(Color(1157627905)),
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

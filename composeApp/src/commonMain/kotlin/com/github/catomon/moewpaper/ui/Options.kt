@@ -28,7 +28,7 @@ fun Options(
         }
 
         Text(
-            "Desktop",
+            "Options",
             fontSize = 32.sp,
             color = Color.White,
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
