@@ -11,3 +11,5 @@ val cacheFolder: File = File(
 val userDataFolder: File = File(
     System.getProperty("user.home"), "AppData/Roaming/KonaHomeScreen/"
 )
+
+val desktopFolder: File = File(System.getProperty("user.home"), "Desktop")

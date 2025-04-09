@@ -7,6 +7,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -17,6 +22,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.github.catomon.moewpaper.App
 import com.github.catomon.moewpaper.di.appModule
+import com.github.catomon.moewpaper.ui.MoeViewModel
 import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinUser
 import moe_wallpaper.composeapp.generated.resources.Res
@@ -24,6 +30,7 @@ import moe_wallpaper.composeapp.generated.resources.ic_cyclone
 import org.jetbrains.compose.reload.DevelopmentEntryPoint
 import org.jetbrains.compose.resources.painterResource
 import org.koin.core.context.startKoin
+import org.koin.java.KoinJavaComponent.get
 import java.awt.Frame
 import java.awt.GraphicsEnvironment
 import java.awt.Toolkit
@@ -47,12 +54,30 @@ fun main() = application {
         position = WindowPosition(Alignment.Center)
     )
 
+    val viewModel: MoeViewModel = get(MoeViewModel::class.java)
+
     Window(
         title = "Moe Wallpaper",
         state = windowState,
         onCloseRequest = ::exitApplication,
         resizable = false,
         undecorated = true,
+//        onKeyEvent = { keyEvent ->
+//            println(keyEvent.key)
+//            when {
+//                keyEvent.key == Key.AltLeft && keyEvent.type == KeyEventType.KeyDown -> {
+//                    viewModel.showItemNames.value = true
+//                    println("sada" +  viewModel.showItemNames.value)
+//                    true
+//                }
+//                keyEvent.key == Key.AltLeft && keyEvent.type == KeyEventType.KeyUp -> {
+//                    viewModel.showItemNames.value = false
+//                    println("sada" +  viewModel.showItemNames.value)
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
     ) {
 
         window.focusableWindowState = false
@@ -101,7 +126,7 @@ fun main() = application {
         })
 
         DevelopmentEntryPoint {
-            App(modifier = Modifier.padding(bottom = bottomPadding.dp), exitApplication = this@application::exitApplication)
+            App(state = viewModel, modifier = Modifier.padding(bottom = bottomPadding.dp), exitApplication = this@application::exitApplication)
         }
     }
 }

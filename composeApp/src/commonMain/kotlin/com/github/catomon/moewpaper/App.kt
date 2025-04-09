@@ -1,15 +1,23 @@
 package com.github.catomon.moewpaper
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,18 +27,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.catomon.moewpaper.theme.AppTheme
 import com.github.catomon.moewpaper.ui.BottomPanel
-import com.github.catomon.moewpaper.ui.DesktopItems
 import com.github.catomon.moewpaper.ui.Item
+import com.github.catomon.moewpaper.ui.ItemsGridList
 import com.github.catomon.moewpaper.ui.MoeViewModel
 import com.github.catomon.moewpaper.ui.Options
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
+import com.mohamedrejeb.compose.dnd.DragAndDropState
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import kotlinx.coroutines.delay
@@ -38,12 +54,10 @@ import moe_wallpaper.composeapp.generated.resources.Res
 import moe_wallpaper.composeapp.generated.resources.`lucky bg`
 import org.jetbrains.compose.resources.painterResource
 import org.koin.java.KoinJavaComponent.get
-import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun App(
     state: MoeViewModel = get(MoeViewModel::class.java),
@@ -84,15 +98,13 @@ internal fun App(
                         if (showOptions) {
                             showOptions = false
                             totalDragDistance = 0f
-                        }
-                        else if (!showItems) showItems = true
+                        } else if (!showItems) showItems = true
                     }
                     if (totalDragDistance <= -300) {
                         if (showItems) {
                             showItems = false
                             totalDragDistance = 0f
-                        }
-                        else if (!showOptions) showOptions = true
+                        } else if (!showOptions) showOptions = true
                     }
                 }, onDragEnd = {
                     totalDragDistance = 0f
@@ -108,13 +120,13 @@ internal fun App(
                     painterResource(Res.drawable.`lucky bg`),
                     "background",
                     modifier = Modifier.clip(
-                        RoundedCornerShape(30.dp)
+                        RoundedCornerShape(34.dp)
                     ),
                     contentScale = ContentScale.FillBounds
                 )
 
                 AnimatedVisibility(showItems, modifier = Modifier.fillMaxSize()) {
-                    DesktopItems(state.desktopItems, Modifier.fillMaxSize(), dragAndDropState)
+                    Tabs(state, dragAndDropState)
                 }
 
                 AnimatedVisibility(showOptions, modifier = Modifier.fillMaxSize()) {
@@ -129,7 +141,8 @@ internal fun App(
                 color = Color.White
             )
 
-            BottomPanel(state,
+            BottomPanel(
+                state,
                 state.bottomBarItems,
                 Modifier.align(Alignment.BottomCenter).dropTarget(state = dragAndDropState,
                     key = "bottom panel",
@@ -139,9 +152,118 @@ internal fun App(
                     },
                     onDragEnter = {
 
-                    }))
+                    })
+            )
         }
     }
 }
 
-val desktopFolder: File = File(System.getProperty("user.home"), "Desktop")
+@Composable
+fun Tabs(state: MoeViewModel, dragAndDropState: DragAndDropState<Item>) {
+    var selectedIndex by remember { mutableStateOf(if (state.homeItems.isEmpty()) 0 else 1) }
+
+    val list = listOf("Desktop", "Starred", "User")
+
+    val showItemNames by state.showItemNames
+
+//    val focusRequester = remember { FocusRequester() }
+//
+//    LaunchedEffect(Unit) {
+//        while(true) {
+//            focusRequester.requestFocus()
+//            delay(100)
+//        }
+//    }
+
+    //.focusRequester(focusRequester).focusable().onKeyEvent { keyEvent ->
+    //        println("k")
+    //            when {
+    //                keyEvent.key == Key.AltLeft && keyEvent.type == KeyEventType.KeyDown -> {
+    //                    state.showItemNames.value = true
+    //                    println("t")
+    //                    true
+    //                }
+    //                keyEvent.key == Key.AltLeft && keyEvent.type == KeyEventType.KeyUp -> {
+    //                    state.showItemNames.value = false
+    //                    println("f")
+    //                    true
+    //                }
+    //                else -> false
+    //            }
+    //    }
+    Column(Modifier.fillMaxSize()) {
+        TabRow(
+            selectedTabIndex = selectedIndex,
+        ) {
+            list.forEachIndexed { index, text ->
+                val selected = selectedIndex == index
+                Tab(
+                    selected = selected,
+                    onClick = { selectedIndex = index },
+                    text = { Text(text = text, fontSize = 16.sp) },
+                    modifier = Modifier.dropTarget(state = dragAndDropState,
+                        key = text,
+                        onDrop = { dragItemState ->
+                            val item = dragItemState.data
+                            when (index) {
+                                0 -> {
+                                    //state.addItemToHome(item)
+                                }
+
+                                1 -> {
+                                    state.addItemToHome(item)
+                                }
+
+                                2 -> {
+                                    state.addItemToUser(item)
+                                }
+                            }
+                        },
+                        onDragEnter = {
+
+                        })
+                )
+            }
+        }
+
+        Box(Modifier.fillMaxSize().background(color = Color(1593835520))) {
+            androidx.compose.animation.AnimatedVisibility(
+                selectedIndex == 0, enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                ItemsGridList(
+                    state.desktopItems,
+                    Modifier.fillMaxSize(),
+                    dragAndDropState,
+                    showNames = showItemNames
+                )
+            }
+
+            androidx.compose.animation.AnimatedVisibility(
+                selectedIndex == 1, enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                ItemsGridList(
+                    state.homeItems,
+                    Modifier.fillMaxSize(),
+                    dragAndDropState,
+                    onRemove = state::removeItemFromHome,
+                    showNames = showItemNames
+                )
+            }
+
+            androidx.compose.animation.AnimatedVisibility(
+                selectedIndex == 2, enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                ItemsGridList(
+                    state.userItems,
+                    Modifier.fillMaxSize(),
+                    dragAndDropState,
+                    onRemove = state::removeItemFromUser,
+                    showNames = showItemNames
+                )
+            }
+        }
+    }
+}
