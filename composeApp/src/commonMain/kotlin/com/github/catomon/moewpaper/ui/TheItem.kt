@@ -1,5 +1,7 @@
 package com.github.catomon.moewpaper.ui
 
+import androidx.compose.foundation.ContextMenuArea
+import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -18,57 +20,91 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
 import com.github.catomon.moewpaper.cacheFolder
+import com.github.catomon.moewpaper.utils.DesktopUtils
+import com.github.catomon.moewpaper.utils.ItemListener
+import com.github.catomon.moewpaper.utils.ItemOpener
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
-import java.awt.Desktop
-import java.io.File
-import java.net.URI
 
 @Composable
-fun ItemButton(item: Item, modifier: Modifier = Modifier) {
-    Box(modifier.padding(12.dp).size(64.dp), contentAlignment = Alignment.Center) {
+fun ItemButton(item: Item, modifier: Modifier = Modifier, onRemove: ((Item) -> Unit)?) {
+    var loading by remember { mutableStateOf(false) }
 
-        var loading by remember { mutableStateOf(false) }
-
-        LaunchedEffect(loading) {
-            if (loading) {
-                delay(1000)
-                loading = false
-            }
-        }
-
-        CachedIcon(item.cachedIconId, Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)).clickable {
-            ItemOpener.open(item)
-
-            loading = true
-        })
-
+    LaunchedEffect(loading) {
         if (loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.width(32.dp),
-                color = Color.White
-            )
+            delay(1000)
+            loading = false
         }
     }
-}
 
-object ItemOpener {
-    fun open(item: Item) {
-        val uriFormat = item.uri.substringBefore(":")
-        when (uriFormat) {
-            "file" -> {
-                Desktop.getDesktop().open(File(URI.create(item.uri)))
+    var running by remember { mutableStateOf(false) }
+    var currentRunningId by remember { mutableStateOf("") }
+
+    val itemListener: ItemListener = remember {
+        ItemListener(onStart = {
+            currentRunningId = it
+            running = true
+        }, onClose = {
+            running = false
+            if (currentRunningId == it) currentRunningId = ""
+        })
+    }
+
+    ContextMenuArea(items = {
+        listOfNotNull(if (onRemove != null) ContextMenuItem("Remove", onClick = {
+            onRemove(item)
+        }) else null,
+            if (currentRunningId.isNotBlank()) ContextMenuItem("Close App", onClick = {
+                try {
+                    DesktopUtils.killProcess(currentRunningId.toLong())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }) else null
+        )
+    }) {
+        Box(modifier.padding(12.dp).size(64.dp).let {
+            if (running) it.drawWithContent {
+                drawContent()
+
+                drawCircle(color = Color.White, center = Offset.Zero, radius = 8f)
             }
+            else it
+        }, contentAlignment = Alignment.Center) {
+            CachedIcon(item.cachedIconId,
+                Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)).clickable {
+                    if (!running) ItemOpener.open(item, if (running) null else itemListener)
+                    else {
+//                    try {
+//                        DesktopUtils.killProcess(currentRunningId.toLong())
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
 
-            else -> {
-                Exception("uri not supported").printStackTrace()
+
+                        //does not work properly
+//                    try {
+//                        BringWindowToForeground.bringMainWindowToForeground(currentRunningId.toLong())
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
+                    }
+
+                    loading = true
+                })
+
+            if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.width(32.dp), color = Color.White
+                )
             }
         }
     }
@@ -83,13 +119,16 @@ class Item(
 
 @Composable
 fun CachedIcon(
-    cachedImageId: String,
-    modifier: Modifier = Modifier
+    cachedImageId: String, modifier: Modifier = Modifier
 ) {
-    val painter = rememberAsyncImagePainter(cacheFolder.toURI().path + "/$cachedImageId", filterQuality = FilterQuality.High)
+    val painter = rememberAsyncImagePainter(
+        cacheFolder.toURI().path + "/$cachedImageId", filterQuality = FilterQuality.High
+    )
 
-    Image(painter,
+    Image(
+        painter,
         modifier = modifier,
         contentDescription = "DeskIcon",
-        contentScale = ContentScale.Crop)
+        contentScale = ContentScale.Crop
+    )
 }

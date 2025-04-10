@@ -200,7 +200,7 @@ fun Tabs(state: MoeViewModel, dragAndDropState: DragAndDropState<Item>) {
                 Tab(
                     selected = selected,
                     onClick = { selectedIndex = index },
-                    text = { Text(text = text, fontSize = 16.sp) },
+                    text = { Text(text = text, fontSize = 16.sp, color = Color.White) },
                     modifier = Modifier.dropTarget(state = dragAndDropState,
                         key = text,
                         onDrop = { dragItemState ->

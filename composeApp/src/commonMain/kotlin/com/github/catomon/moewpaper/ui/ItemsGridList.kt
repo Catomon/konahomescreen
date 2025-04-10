@@ -1,7 +1,5 @@
 package com.github.catomon.moewpaper.ui
 
-import androidx.compose.foundation.ContextMenuArea
-import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.TooltipPlacement
@@ -67,19 +65,12 @@ fun ItemsGridList(
                         key = item.uri,
                         data = item,
                     ) {
-                        ContextMenuArea(items = {
-                            if (onRemove != null) listOf(
-                                ContextMenuItem("Remove", onClick = {
-                                    onRemove(item)
-                                })
-                            ) else emptyList()
-                        }) {
-                            ItemButton(
-                                item, Modifier.padding(vertical = 4.dp).background(
-                                    color = Color(939524096), shape = RoundedCornerShape(12.dp)
-                                ).padding(0.dp)
-                            )
-                        }
+                        ItemButton(
+                            item, Modifier.padding(vertical = 4.dp).background(
+                                color = Color(939524096), shape = RoundedCornerShape(12.dp)
+                            ).padding(0.dp),
+                            onRemove,
+                        )
                     }
                 }
 
