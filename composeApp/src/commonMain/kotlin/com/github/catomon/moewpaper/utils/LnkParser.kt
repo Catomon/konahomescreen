@@ -88,8 +88,8 @@ class LnkParser(f: File) {
             val networkVolumeTable_offset =
                 link[file_start + networkVolumeTable_offset_offset] + file_start
             val shareName_offset_offset = 0x08
-            val shareName_offset = (link[networkVolumeTable_offset + shareName_offset_offset]
-                    + networkVolumeTable_offset)
+            val shareName_offset =
+                (link[networkVolumeTable_offset + shareName_offset_offset] + networkVolumeTable_offset)
             val shareName = getNullDelimitedString(link, shareName_offset)
             realFilename = shareName + "\\" + finalname
         }
@@ -100,7 +100,7 @@ class LnkParser(f: File) {
             var len = 0
             // count bytes until the null character (0)
             while (true) {
-                if (bytes[off + len].toInt() == 0) {
+                if (bytes.size <= off + len || bytes[off + len].toInt() == 0) {
                     break
                 }
                 len++
