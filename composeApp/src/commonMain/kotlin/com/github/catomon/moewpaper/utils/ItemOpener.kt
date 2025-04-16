@@ -20,6 +20,8 @@ object ItemOpener {
                             val processBuilder = ProcessBuilder(realFileName.substringAfter(":/"))
                             val process = processBuilder.start()
                             itemListener?.onStart?.invoke(process.pid().toString())
+                            if (process.isAlive)
+                                Thread.sleep(3000)
                             process.waitFor()
                             itemListener?.onClose?.invoke(process.pid().toString())
                         }

@@ -33,6 +33,9 @@ import com.github.catomon.moewpaper.utils.ItemListener
 import com.github.catomon.moewpaper.utils.ItemOpener
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
+import java.awt.Desktop
+import java.io.File
+import java.net.URI
 
 @Composable
 fun ItemButton(item: Item, modifier: Modifier = Modifier, onRemove: ((Item) -> Unit)?) {
@@ -59,9 +62,10 @@ fun ItemButton(item: Item, modifier: Modifier = Modifier, onRemove: ((Item) -> U
     }
 
     ContextMenuArea(items = {
-        listOfNotNull(if (onRemove != null) ContextMenuItem("Remove", onClick = {
-            onRemove(item)
-        }) else null,
+        listOfNotNull(
+            if (onRemove != null) ContextMenuItem("Remove", onClick = {
+                onRemove(item)
+            }) else null,
             if (currentRunningId.isNotBlank()) ContextMenuItem("Close App", onClick = {
                 try {
                     DesktopUtils.killProcess(currentRunningId.toLong())
@@ -81,8 +85,13 @@ fun ItemButton(item: Item, modifier: Modifier = Modifier, onRemove: ((Item) -> U
         }, contentAlignment = Alignment.Center) {
             CachedIcon(item.cachedIconId,
                 Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)).clickable {
-                    if (!running) ItemOpener.open(item, if (running) null else itemListener)
-                    else {
+                    if (!running) {
+                        // if null assume its not bottom bar
+                        if (onRemove == null)
+                            Desktop.getDesktop().open(File(URI.create(item.uri)))
+                        else
+                            ItemOpener.open(item, if (running) null else itemListener)
+                    } else {
 //                    try {
 //                        DesktopUtils.killProcess(currentRunningId.toLong())
 //                    } catch (e: Exception) {

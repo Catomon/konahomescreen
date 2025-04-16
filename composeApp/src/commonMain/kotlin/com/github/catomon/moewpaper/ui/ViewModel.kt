@@ -1,16 +1,20 @@
 package com.github.catomon.moewpaper.ui
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.catomon.moewpaper.data.AppSettings
 import com.github.catomon.moewpaper.desktopFolder
 import com.github.catomon.moewpaper.userDataFolder
 import com.github.catomon.moewpaper.utils.SystemIconUtils
 import io.github.xxfast.kstore.KStore
 import io.github.xxfast.kstore.file.storeOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.io.files.Path
 
 class MoeViewModel() : ViewModel() {
@@ -23,12 +27,16 @@ class MoeViewModel() : ViewModel() {
 
     val desktopItems = mutableStateListOf<Item>()
 
-    val bottomBarStore: KStore<List<Item>> =
+    private val bottomBarStore: KStore<List<Item>> =
         storeOf(file = Path(userDataFolder.path + "/bottom_bar.json"))
+    private val homeStore: KStore<List<Item>> = storeOf(file = Path(userDataFolder.path + "/home.json"))
+    private val userStore: KStore<List<Item>> = storeOf(file = Path(userDataFolder.path + "/user.json"))
+    private val settingsStore: KStore<AppSettings> = storeOf(file = Path(userDataFolder.path + "/settings.json"))
 
-    val homeStore: KStore<List<Item>> = storeOf(file = Path(userDataFolder.path + "/home.json"))
-
-    val userStore: KStore<List<Item>> = storeOf(file = Path(userDataFolder.path + "/user.json"))
+    var appSettings: AppSettings by mutableStateOf(runBlocking {
+        settingsStore.get() ?: settingsStore.set(AppSettings())
+        settingsStore.get() ?: error("Could not set appSettings KStore.")
+    })
 
     var showItemNames = mutableStateOf(false)
 
@@ -47,6 +55,12 @@ class MoeViewModel() : ViewModel() {
         })
 
         loadItems()
+    }
+
+    fun saveSettings(settings: AppSettings = appSettings) {
+        viewModelScope.launch {
+            settingsStore.set(settings)
+        }
     }
 
     private fun loadItems() {

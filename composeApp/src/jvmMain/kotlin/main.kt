@@ -7,12 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isAltPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -23,15 +17,9 @@ import androidx.compose.ui.window.rememberWindowState
 import com.github.catomon.moewpaper.App
 import com.github.catomon.moewpaper.di.appModule
 import com.github.catomon.moewpaper.ui.MoeViewModel
-import com.sun.jna.platform.win32.User32
-import com.sun.jna.platform.win32.WinUser
-import moe_wallpaper.composeapp.generated.resources.Res
-import moe_wallpaper.composeapp.generated.resources.ic_cyclone
 import org.jetbrains.compose.reload.DevelopmentEntryPoint
-import org.jetbrains.compose.resources.painterResource
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.get
-import java.awt.Frame
 import java.awt.GraphicsEnvironment
 import java.awt.Toolkit
 import java.awt.event.MouseEvent
@@ -89,13 +77,21 @@ fun main() = application {
         fun updatePadding() {
             usableBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().maximumWindowBounds
             bottomPadding = (window.height - usableBounds.height).let { if (it < 0) 0 else it }
-            if (bottomPadding > 0)
+            if (bottomPadding > 0) {
+                val winSize = windowState.size
                 windowState.position = WindowPosition(
-                    getScreenCenterPosition(windowState.size).x.dp,
-                    getScreenCenterPosition(windowState.size).y.dp + 20.dp
+                    getWndScrCenterPos(
+                        winSize.width.value.toInt(),
+                        winSize.height.value.toInt()
+                    ).x.dp,
+                    getWndScrCenterPos(
+                        winSize.width.value.toInt(),
+                        winSize.height.value.toInt()
+                    ).y.dp + 20.dp
                 )
-            else
+            } else {
                 windowState.position = WindowPosition(Alignment.Center)
+            }
         }
 
         window.addMouseListener(object : MouseListener {
@@ -126,7 +122,11 @@ fun main() = application {
         })
 
         DevelopmentEntryPoint {
-            App(state = viewModel, modifier = Modifier.padding(bottom = bottomPadding.dp), exitApplication = this@application::exitApplication)
+            App(
+                viewModel = viewModel,
+                modifier = Modifier.padding(bottom = bottomPadding.dp),
+                exitApplication = this@application::exitApplication
+            )
         }
     }
 }
@@ -137,13 +137,13 @@ fun AppPreview() {
     App()
 }
 
-fun getScreenCenterPosition(windowSize: DpSize): IntOffset {
+fun getWndScrCenterPos(windowWidth: Int, windowHeight: Int): IntOffset {
     val screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().maximumWindowBounds
     val screenWidth = screenBounds.width
     val screenHeight = screenBounds.height
 
-    val x = (screenWidth - windowSize.width.value.toInt()) / 2
-    val y = (screenHeight - windowSize.height.value.toInt()) / 2
+    val x = (screenWidth - windowWidth) / 2
+    val y = (screenHeight - windowHeight) / 2
 
     return IntOffset(x, y)
 }

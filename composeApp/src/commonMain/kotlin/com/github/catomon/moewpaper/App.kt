@@ -1,19 +1,16 @@
 package com.github.catomon.moewpaper
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.material3.Tab
@@ -21,30 +18,28 @@ import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.catomon.moewpaper.theme.AppTheme
+import com.github.catomon.moewpaper.theme.Colors
 import com.github.catomon.moewpaper.ui.BottomPanel
 import com.github.catomon.moewpaper.ui.Item
 import com.github.catomon.moewpaper.ui.ItemsGridList
 import com.github.catomon.moewpaper.ui.MoeViewModel
 import com.github.catomon.moewpaper.ui.Options
+import com.github.catomon.moewpaper.ui.utils.loadCustomBackground
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.DragAndDropState
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
@@ -60,7 +55,7 @@ import java.util.Locale
 
 @Composable
 internal fun App(
-    state: MoeViewModel = get(MoeViewModel::class.java),
+    viewModel: MoeViewModel = get(MoeViewModel::class.java),
     modifier: Modifier = Modifier,
     exitApplication: () -> Unit = { }
 ) = AppTheme {
@@ -73,6 +68,15 @@ internal fun App(
     val dragAndDropState = rememberDragAndDropState<Item>()
 
     var dateText by remember { mutableStateOf("") }
+
+    val appSettings = viewModel.appSettings
+
+    val backgroundPainter = remember(appSettings.backgroundImage) {
+        val imageBitmap = loadCustomBackground()
+        if (imageBitmap != null)
+            BitmapPainter(imageBitmap)
+        else null
+    }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -87,7 +91,8 @@ internal fun App(
         state = dragAndDropState, Modifier.fillMaxSize()
     ) {
         Box(
-            Modifier.background(color = Color(-16119286)).fillMaxSize() then modifier.pointerInput(
+            Modifier.background(color = Colors.mainBackground)
+                .fillMaxSize() then modifier.pointerInput(
                 Unit
             ) {
                 detectVerticalDragGestures(onDragStart = { offset ->
@@ -117,20 +122,22 @@ internal fun App(
                 ), contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painterResource(Res.drawable.`lucky bg`),
+                    key(backgroundPainter) {
+                        backgroundPainter ?: painterResource(Res.drawable.`lucky bg`)
+                    },
                     "background",
                     modifier = Modifier.clip(
                         RoundedCornerShape(34.dp)
-                    ),
+                    ).alpha(viewModel.appSettings.backgroundAlpha),
                     contentScale = ContentScale.FillBounds
                 )
 
                 AnimatedVisibility(showItems, modifier = Modifier.fillMaxSize()) {
-                    Tabs(state, dragAndDropState)
+                    Tabs(viewModel, dragAndDropState)
                 }
 
                 AnimatedVisibility(showOptions, modifier = Modifier.fillMaxSize()) {
-                    Options(Modifier.fillMaxSize(), exitApplication = exitApplication)
+                    Options(viewModel, Modifier.fillMaxSize(), exitApplication = exitApplication)
                 }
             }
 
@@ -142,18 +149,27 @@ internal fun App(
             )
 
             BottomPanel(
-                state,
-                state.bottomBarItems,
+                viewModel,
+                viewModel.bottomBarItems,
                 Modifier.align(Alignment.BottomCenter).dropTarget(state = dragAndDropState,
                     key = "bottom panel",
                     onDrop = { dragItemState ->
                         val item = dragItemState.data
-                        state.addItemToBottomPanel(item)
+                        viewModel.addItemToBottomPanel(item)
                     },
                     onDragEnter = {
 
                     })
             )
+
+            if (viewModel.bottomBarItems.isEmpty()) {
+                Text(
+                    "Swipe down(v) to open desktop. Swipe up(^) to open settings. Swipe opposite to close.",
+                    color = Color.White,
+                    fontSize = 32.sp,
+                    modifier = Modifier.width(225.dp).align(Alignment.CenterEnd)
+                )
+            }
         }
     }
 }
