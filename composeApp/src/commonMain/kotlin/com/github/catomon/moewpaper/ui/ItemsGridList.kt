@@ -66,7 +66,8 @@ fun ItemsGridList(
                         data = item,
                     ) {
                         ItemButton(
-                            item, Modifier.padding(vertical = 4.dp).background(
+                            item,
+                            Modifier.padding(vertical = 4.dp).background(
                                 color = Color(939524096), shape = RoundedCornerShape(12.dp)
                             ).padding(0.dp),
                             onRemove,

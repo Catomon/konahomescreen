@@ -117,6 +117,13 @@ class MoeViewModel() : ViewModel() {
         }
     }
 
+    fun clearBottomPanel() {
+        viewModelScope.launch {
+            bottomBarItems.clear()
+            bottomBarStore.set(emptyList())
+        }
+    }
+
     fun addItemToHome(item: Item) {
         viewModelScope.launch {
             homeItems.removeIf { it.uri == item.uri }

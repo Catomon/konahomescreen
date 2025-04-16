@@ -1,7 +1,5 @@
 package com.github.catomon.moewpaper.ui
 
-import androidx.compose.foundation.ContextMenuArea
-import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.TooltipPlacement
@@ -25,7 +23,7 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun BottomPanel(state: MoeViewModel, items: MutableList<Item>, modifier: Modifier = Modifier) {
+fun BottomPanel(viewModel: MoeViewModel, items: MutableList<Item>, modifier: Modifier = Modifier) {
     LazyRow(
         modifier.fillMaxWidth().height(125.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -54,8 +52,11 @@ fun BottomPanel(state: MoeViewModel, items: MutableList<Item>, modifier: Modifie
                 ), delayMillis = 300
             ) {
                 ItemButton(item, onRemove = {
-                    state.removeItemFromBottomPanel(item)
-                })
+                    viewModel.removeItemFromBottomPanel(item)
+                },
+                    onClear = {
+                        viewModel.clearBottomPanel()
+                    })
             }
         }
     }

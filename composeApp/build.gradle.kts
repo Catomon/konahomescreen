@@ -42,6 +42,9 @@ kotlin {
             implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
             implementation("com.mohamedrejeb.dnd:compose-dnd:0.3.0")
+
+            implementation("io.github.vinceglb:filekit-core:0.10.0-beta01")
+            implementation("io.github.vinceglb:filekit-dialogs-compose:0.10.0-beta01")
         }
 
         commonTest.dependencies {

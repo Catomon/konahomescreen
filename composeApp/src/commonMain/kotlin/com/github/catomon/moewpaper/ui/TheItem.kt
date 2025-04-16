@@ -38,7 +38,12 @@ import java.io.File
 import java.net.URI
 
 @Composable
-fun ItemButton(item: Item, modifier: Modifier = Modifier, onRemove: ((Item) -> Unit)?) {
+fun ItemButton(
+    item: Item,
+    modifier: Modifier = Modifier,
+    onRemove: ((Item) -> Unit)?,
+    onClear: (() -> Unit)? = null
+) {
     var loading by remember { mutableStateOf(false) }
 
     LaunchedEffect(loading) {
@@ -72,7 +77,10 @@ fun ItemButton(item: Item, modifier: Modifier = Modifier, onRemove: ((Item) -> U
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-            }) else null
+            }) else null,
+            if (onClear != null) ContextMenuItem("Clear All", onClick = {
+                onClear()
+            }) else null,
         )
     }) {
         Box(modifier.padding(12.dp).size(64.dp).let {

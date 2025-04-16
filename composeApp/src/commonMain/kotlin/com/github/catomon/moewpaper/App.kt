@@ -99,13 +99,13 @@ internal fun App(
                     totalDragDistance = 0f
                 }, onVerticalDrag = { change, dragAmount ->
                     totalDragDistance += dragAmount
-                    if (totalDragDistance >= 300) {
+                    if (totalDragDistance >= 200) {
                         if (showOptions) {
                             showOptions = false
                             totalDragDistance = 0f
                         } else if (!showItems) showItems = true
                     }
-                    if (totalDragDistance <= -300) {
+                    if (totalDragDistance <= -200) {
                         if (showItems) {
                             showItems = false
                             totalDragDistance = 0f
@@ -129,7 +129,7 @@ internal fun App(
                     modifier = Modifier.clip(
                         RoundedCornerShape(34.dp)
                     ).alpha(viewModel.appSettings.backgroundAlpha),
-                    contentScale = ContentScale.FillBounds
+                    contentScale = ContentScale.Crop
                 )
 
                 AnimatedVisibility(showItems, modifier = Modifier.fillMaxSize()) {
