@@ -17,6 +17,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,7 @@ import com.github.catomon.moewpaper.ui.Item
 import com.github.catomon.moewpaper.ui.ItemsGridList
 import com.github.catomon.moewpaper.ui.MoeViewModel
 import com.github.catomon.moewpaper.ui.Options
-import com.github.catomon.moewpaper.ui.utils.loadCustomBackground
+import com.github.catomon.moewpaper.ui.utils.loadBackgroundImage
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.DragAndDropState
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
@@ -53,6 +54,15 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+enum class Pages {
+    NONE, ITEMS, OPTIONS
+}
+
+data class UiState(
+    val shownPage: Pages = Pages.NONE,
+    val backgroundImageUpdatedCount: Int = 0,
+)
+
 @Composable
 internal fun App(
     viewModel: MoeViewModel = get(MoeViewModel::class.java),
@@ -60,22 +70,17 @@ internal fun App(
     exitApplication: () -> Unit = { }
 ) = AppTheme {
 
-    var showItems by remember { mutableStateOf(false) }
-    var showOptions by remember { mutableStateOf(false) }
+    val state by viewModel.uiState.collectAsState()
+
+    val appSettings by viewModel.appSettings.collectAsState()
+
+    var dateText by mutableStateOf("")
 
     var totalDragDistance by remember { mutableStateOf(0f) }
-
     val dragAndDropState = rememberDragAndDropState<Item>()
 
-    var dateText by remember { mutableStateOf("") }
-
-    val appSettings = viewModel.appSettings
-
-    val backgroundPainter = remember(appSettings.backgroundImage) {
-        val imageBitmap = loadCustomBackground()
-        if (imageBitmap != null)
-            BitmapPainter(imageBitmap)
-        else null
+    val backgroundPainter = remember(state.backgroundImageUpdatedCount) {
+        loadBackgroundImage()?.let { BitmapPainter(it) }
     }
 
     LaunchedEffect(Unit) {
@@ -100,16 +105,16 @@ internal fun App(
                 }, onVerticalDrag = { change, dragAmount ->
                     totalDragDistance += dragAmount
                     if (totalDragDistance >= 200) {
-                        if (showOptions) {
-                            showOptions = false
+                        if (state.shownPage == Pages.OPTIONS) {
+                            viewModel.showPage(Pages.NONE)
                             totalDragDistance = 0f
-                        } else if (!showItems) showItems = true
+                        } else viewModel.showPage(Pages.ITEMS)
                     }
                     if (totalDragDistance <= -200) {
-                        if (showItems) {
-                            showItems = false
+                        if (state.shownPage == Pages.ITEMS) {
+                            viewModel.showPage(Pages.NONE)
                             totalDragDistance = 0f
-                        } else if (!showOptions) showOptions = true
+                        } else viewModel.showPage(Pages.OPTIONS)
                     }
                 }, onDragEnd = {
                     totalDragDistance = 0f
@@ -128,15 +133,21 @@ internal fun App(
                     "background",
                     modifier = Modifier.clip(
                         RoundedCornerShape(34.dp)
-                    ).alpha(viewModel.appSettings.backgroundAlpha),
+                    ).alpha(appSettings.backgroundAlpha),
                     contentScale = ContentScale.Crop
                 )
 
-                AnimatedVisibility(showItems, modifier = Modifier.fillMaxSize()) {
+                AnimatedVisibility(
+                    state.shownPage == Pages.ITEMS,
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     Tabs(viewModel, dragAndDropState)
                 }
 
-                AnimatedVisibility(showOptions, modifier = Modifier.fillMaxSize()) {
+                AnimatedVisibility(
+                    state.shownPage == Pages.OPTIONS,
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     Options(viewModel, Modifier.fillMaxSize(), exitApplication = exitApplication)
                 }
             }
@@ -180,7 +191,7 @@ fun Tabs(state: MoeViewModel, dragAndDropState: DragAndDropState<Item>) {
 
     val list = listOf("Desktop", "Starred", "User")
 
-    val showItemNames by state.showItemNames
+    var showItemNames by mutableStateOf(false)
 
 //    val focusRequester = remember { FocusRequester() }
 //

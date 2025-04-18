@@ -4,9 +4,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.github.catomon.moewpaper.userDataFolder
 import org.jetbrains.skia.Image
+import java.io.File
 
-fun loadCustomBackground(): ImageBitmap? {
-    val file = userDataFolder.resolve("custom_background.image")
+fun readImageBitmapFromFile(file: File): ImageBitmap? {
     if (!file.exists()) return null
     try {
         val imageBitmap = Image.makeFromEncoded(file.readBytes()).toComposeImageBitmap()
@@ -16,4 +16,8 @@ fun loadCustomBackground(): ImageBitmap? {
     }
 
     return null
+}
+
+fun loadBackgroundImage(): ImageBitmap? {
+    return readImageBitmapFromFile(userDataFolder.resolve("custom_background.image"))
 }

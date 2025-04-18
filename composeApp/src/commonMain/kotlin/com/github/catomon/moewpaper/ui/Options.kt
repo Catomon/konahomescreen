@@ -12,6 +12,8 @@ import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewModelScope
 import com.github.catomon.moewpaper.desktopFolder
 import com.github.catomon.moewpaper.userDataFolder
 import io.github.vinceglb.filekit.FileKit
@@ -27,7 +28,6 @@ import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -39,6 +39,7 @@ fun Options(
     exitApplication: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val appSettings by viewModel.appSettings.collectAsState()
 
     DisposableEffect(Unit) {
         onDispose {
@@ -54,8 +55,8 @@ fun Options(
             Column {
                 Text("Background alpha:", color = Color.White)
 
-                Slider(viewModel.appSettings.backgroundAlpha, onValueChange = {
-                    viewModel.appSettings = viewModel.appSettings.copy(backgroundAlpha = it)
+                Slider(appSettings.backgroundAlpha, onValueChange = {
+                    viewModel.updateSettings(appSettings.copy(backgroundAlpha = it))
                 }, modifier = Modifier.width(250.dp))
             }
 
@@ -82,14 +83,12 @@ fun Options(
                                 )
                             }
 
-                            //to trigger recomposition
-                            viewModel.viewModelScope.launch {
-                                viewModel.appSettings =
-                                    viewModel.appSettings.copy(backgroundImage = "")
-                                delay(500)
-                                viewModel.appSettings =
-                                    viewModel.appSettings.copy(backgroundImage = "custom_background")
-                            }
+                            viewModel.updateSettings(
+                                appSettings.copy(
+                                    customBackground = false
+                                )
+                            )
+                            viewModel.updateBackgroundImage()
                         }
 
                     }) {
@@ -99,7 +98,8 @@ fun Options(
                     Button(onClick = {
                         userDataFolder.resolve("custom_background.image").delete()
 
-                        viewModel.appSettings = viewModel.appSettings.copy(backgroundImage = "")
+                        viewModel.updateSettings(appSettings.copy(customBackground = false))
+                        viewModel.updateBackgroundImage()
                     }) {
                         Text("Default")
                     }

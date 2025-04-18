@@ -1,18 +1,20 @@
 package com.github.catomon.moewpaper.ui
 
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.catomon.moewpaper.Pages
+import com.github.catomon.moewpaper.UiState
 import com.github.catomon.moewpaper.data.AppSettings
 import com.github.catomon.moewpaper.desktopFolder
 import com.github.catomon.moewpaper.userDataFolder
 import com.github.catomon.moewpaper.utils.SystemIconUtils
 import io.github.xxfast.kstore.KStore
 import io.github.xxfast.kstore.file.storeOf
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.files.Path
@@ -29,16 +31,23 @@ class MoeViewModel() : ViewModel() {
 
     private val bottomBarStore: KStore<List<Item>> =
         storeOf(file = Path(userDataFolder.path + "/bottom_bar.json"))
-    private val homeStore: KStore<List<Item>> = storeOf(file = Path(userDataFolder.path + "/home.json"))
-    private val userStore: KStore<List<Item>> = storeOf(file = Path(userDataFolder.path + "/user.json"))
-    private val settingsStore: KStore<AppSettings> = storeOf(file = Path(userDataFolder.path + "/settings.json"))
+    private val homeStore: KStore<List<Item>> =
+        storeOf(file = Path(userDataFolder.path + "/home.json"))
+    private val userStore: KStore<List<Item>> =
+        storeOf(file = Path(userDataFolder.path + "/user.json"))
+    private val settingsStore: KStore<AppSettings> =
+        storeOf(file = Path(userDataFolder.path + "/settings.json"))
 
-    var appSettings: AppSettings by mutableStateOf(runBlocking {
-        settingsStore.get() ?: settingsStore.set(AppSettings())
-        settingsStore.get() ?: error("Could not set appSettings KStore.")
-    })
+    private val _appSettings = MutableStateFlow(
+        runBlocking {
+            settingsStore.get() ?: settingsStore.set(AppSettings())
+            settingsStore.get() ?: error("Could not set appSettings KStore.")
+        }
+    )
+    val appSettings = _appSettings.asStateFlow()
 
-    var showItemNames = mutableStateOf(false)
+    private val _uiState = MutableStateFlow(UiState())
+    val uiState = _uiState.asStateFlow()
 
     init {
         userDataFolder.mkdirs()
@@ -57,7 +66,19 @@ class MoeViewModel() : ViewModel() {
         loadItems()
     }
 
-    fun saveSettings(settings: AppSettings = appSettings) {
+    fun updateBackgroundImage() {
+        _uiState.update { it.copy(backgroundImageUpdatedCount = it.backgroundImageUpdatedCount + 1) }
+    }
+
+    fun showPage(page: Pages) {
+        _uiState.update { it.copy(shownPage = page) }
+    }
+
+    fun updateSettings(settings: AppSettings) {
+        _appSettings.value = settings
+    }
+
+    fun saveSettings(settings: AppSettings = appSettings.value) {
         viewModelScope.launch {
             settingsStore.set(settings)
         }
