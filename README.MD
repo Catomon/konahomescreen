@@ -1,7 +1,5 @@
-# Compose Multiplatform Application
+# Compose Multiplatform Application targeting only Windows.
 
-##  # Desktop
-Run the desktop application: `./gradlew :composeApp:run`
-Run the desktop **hot reload** application: `./gradlew :composeApp:runHot`)
-Run desktop UI tests: `./gradlew :composeApp:jvmTest`
-
+Run application: `./gradlew :composeApp:run`
+Run **hot reload** application: `./gradlew :composeApp:runHot`)
+Run UI tests: `./gradlew :composeApp:jvmTest`
