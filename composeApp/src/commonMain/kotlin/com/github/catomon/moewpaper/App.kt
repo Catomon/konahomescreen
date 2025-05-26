@@ -38,6 +38,7 @@ import com.github.catomon.moewpaper.theme.Colors
 import com.github.catomon.moewpaper.ui.BottomPanel
 import com.github.catomon.moewpaper.ui.Item
 import com.github.catomon.moewpaper.ui.ItemsGridList
+import com.github.catomon.moewpaper.ui.LeftPanel
 import com.github.catomon.moewpaper.ui.MoeViewModel
 import com.github.catomon.moewpaper.ui.Options
 import com.github.catomon.moewpaper.ui.utils.loadBackgroundImage
@@ -172,6 +173,8 @@ internal fun App(
 
                     })
             )
+
+            LeftPanel(viewModel, Modifier.align(Alignment.CenterStart))
 
             if (viewModel.bottomBarItems.isEmpty()) {
                 Text(
