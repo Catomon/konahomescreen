@@ -41,6 +41,7 @@ import com.github.catomon.moewpaper.ui.ItemsGridList
 import com.github.catomon.moewpaper.ui.LeftPanel
 import com.github.catomon.moewpaper.ui.MoeViewModel
 import com.github.catomon.moewpaper.ui.Options
+import com.github.catomon.moewpaper.ui.TiledBackgroundImage
 import com.github.catomon.moewpaper.ui.utils.loadBackgroundImage
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.DragAndDropState
@@ -49,6 +50,8 @@ import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import kotlinx.coroutines.delay
 import moe_wallpaper.composeapp.generated.resources.Res
 import moe_wallpaper.composeapp.generated.resources.`lucky bg`
+import moe_wallpaper.composeapp.generated.resources.lucky_background
+import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.java.KoinJavaComponent.get
 import java.time.LocalDateTime
@@ -122,6 +125,8 @@ internal fun App(
                 })
             }, contentAlignment = Alignment.Center
         ) {
+            TiledBackgroundImage(imageResource(Res.drawable.lucky_background), Modifier.matchParentSize())
+
             Box(
                 Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
                     RoundedCornerShape(30.dp)

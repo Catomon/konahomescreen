@@ -4,31 +4,74 @@ import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.platform.DesktopWindow
 import com.sun.jna.platform.WindowUtils
-import com.sun.jna.platform.win32.User32Util
-import com.sun.jna.platform.win32.WinDef
+import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef.HWND
-import com.sun.jna.platform.win32.WinUser.SW_RESTORE
-import com.sun.jna.win32.StdCallLibrary
-import com.sun.jna.win32.StdCallLibrary.StdCallCallback
+import com.sun.jna.platform.win32.WinUser
+import com.sun.jna.ptr.IntByReference
 import java.awt.Desktop
 import java.io.File
 
+fun DesktopWindow.toggleMinimized() {
+    if (DesktopUtils.MyUser32.INSTANCE.IsIconic(hwnd)) {
+        User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE)
+        User32.INSTANCE.SetForegroundWindow(hwnd)
+    } else {
+        val minimized = User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_MINIMIZE)
+
+        if (!minimized) {
+            User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE)
+            User32.INSTANCE.SetForegroundWindow(hwnd)
+        }
+    }
+}
+
 object DesktopUtils {
+    interface MyUser32 : User32 {
+        fun IsIconic(hWnd: HWND): Boolean
+
+        companion object {
+            val INSTANCE: MyUser32 = Native.load("user32", MyUser32::class.java)
+        }
+    }
+
     fun getWindows(): List<DesktopWindow> {
-        return WindowUtils.getAllWindows(true).filter { it.title.isNotBlank() }
+        println(
+            "\n"
+        )
+        return WindowUtils.getAllWindows(true).filter {
+            it.title.isNotBlank() && it.title !in listOf(
+                "Microsoft Text Input Application",
+                "Program Manager",
+                "Moe Wallpaper"
+            )
+        }.sortedBy { it.title }.also { println(it.joinToString("\n") { it.title }) }
+    }
+
+    fun getIcon(window: DesktopWindow): String? {
+        return SystemIconUtils.extractIconFromFileAndCache(window.filePath)
     }
 
     fun closeWindow(hwnd: HWND) {
-        User32Util.destroyWindow(hwnd)
-//        User32.INSTANCE.PostMessage(hwnd, com.sun.jna.platform.win32.WinUser.WM_CLOSE, null, null)
+//        User32Util.destroyWindow(hwnd)
+        User32.INSTANCE.PostMessage(hwnd, WinUser.WM_CLOSE, null, null)
     }
 
-    fun getWindowProcessId(hwnd: HWND) : Int {
-        val processIdPtr = Pointer(Native.malloc(4))
-        User32.INSTANCE.GetWindowThreadProcessId(hwnd, processIdPtr)
+    fun bringToForeground(hwnd: HWND) {
+        User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE)
+        User32.INSTANCE.SetForegroundWindow(hwnd)
+    }
 
-        val pid = processIdPtr.getInt(0)
-        Native.free(Pointer.nativeValue(processIdPtr))
+    fun minimize(hwnd: HWND) {
+        User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_MINIMIZE)
+    }
+
+    fun isMinimized(hwnd: HWND) = User32.INSTANCE.IsWindowVisible(hwnd)
+
+    fun getWindowProcessId(hwnd: HWND): Int {
+        val processIdRef = IntByReference()
+        User32.INSTANCE.GetWindowThreadProcessId(hwnd, processIdRef)
+
+        val pid = processIdRef.value
 
         return pid
     }
@@ -78,28 +121,6 @@ object DesktopUtils {
         }
     }
 
-    interface User32 : StdCallLibrary {
-        fun EnumWindows(lpEnumFunc: WinUser.WNDENUMPROC?, arg: Pointer?): Boolean
-        fun GetWindowThreadProcessId(hWnd: HWND?, processId: Pointer?): Int
-        fun SetForegroundWindow(hWnd: HWND): Boolean
-        fun ShowWindow(hWnd: HWND, nCmdShow: Int): Boolean
-        fun GetWindowTextLength(hWnd: HWND): Int
-        fun PostMessage(hWnd: WinDef.HWND, msg: Int, wParam: WinDef.WPARAM?, lParam: WinDef.LPARAM?)
-
-        companion object {
-            val INSTANCE: User32 = Native.loadLibrary(
-                "user32",
-                User32::class.java
-            )
-        }
-    }
-
-    interface WinUser : StdCallLibrary {
-        interface WNDENUMPROC : StdCallCallback {
-            fun callback(hwnd: HWND?, arg: Pointer?): Boolean
-        }
-    }
-
     @Throws(Exception::class)
     @JvmStatic
     fun bringMainWindowToForeground(processId: Long) {
@@ -109,15 +130,13 @@ object DesktopUtils {
             override fun callback(hwnd: HWND?, arg: Pointer?): Boolean {
                 if (hwnd == null) return true
 
-                val processIdPtr = Pointer(Native.malloc(4))
-                User32.INSTANCE.GetWindowThreadProcessId(hwnd, processIdPtr)
+                val processIdRef = IntByReference()
+                User32.INSTANCE.GetWindowThreadProcessId(hwnd, processIdRef)
+                val pid = processIdRef
 
-                val pid = processIdPtr.getInt(0)
-                Native.free(Pointer.nativeValue(processIdPtr))
-
-                if (pid.toLong() == processId) {
+                if (pid.value.toLong() == processId) {
                     val titleLength =
-                        com.sun.jna.platform.win32.User32.INSTANCE.GetWindowTextLength(hwnd)
+                        User32.INSTANCE.GetWindowTextLength(hwnd)
 
                     if (titleLength > 0) {
                         mainHwnd = hwnd
@@ -130,7 +149,7 @@ object DesktopUtils {
 
         val hwnd = mainHwnd
         if (hwnd != null) {
-            User32.INSTANCE.ShowWindow(hwnd, SW_RESTORE)
+            User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE)
             val result = User32.INSTANCE.SetForegroundWindow(hwnd)
             if (result) {
                 println("Main window brought to foreground successfully.")
