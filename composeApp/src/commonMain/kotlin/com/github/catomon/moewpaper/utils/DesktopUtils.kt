@@ -35,9 +35,6 @@ object DesktopUtils {
     }
 
     fun getWindows(): List<DesktopWindow> {
-        println(
-            "\n"
-        )
         return WindowUtils.getAllWindows(true).filter {
             it.title.isNotBlank() && it.title !in listOf(
                 "Microsoft Text Input Application",

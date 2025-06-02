@@ -5,16 +5,17 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,13 +36,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.catomon.moewpaper.theme.AppTheme
 import com.github.catomon.moewpaper.theme.Colors
+import com.github.catomon.moewpaper.ui.Background
 import com.github.catomon.moewpaper.ui.BottomPanel
 import com.github.catomon.moewpaper.ui.Item
 import com.github.catomon.moewpaper.ui.ItemsGridList
 import com.github.catomon.moewpaper.ui.LeftPanel
 import com.github.catomon.moewpaper.ui.MoeViewModel
 import com.github.catomon.moewpaper.ui.Options
-import com.github.catomon.moewpaper.ui.TiledBackgroundImage
 import com.github.catomon.moewpaper.ui.utils.loadBackgroundImage
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.DragAndDropState
@@ -125,7 +126,7 @@ internal fun App(
                 })
             }, contentAlignment = Alignment.Center
         ) {
-            TiledBackgroundImage(imageResource(Res.drawable.lucky_background), Modifier.matchParentSize())
+            Background(imageResource(Res.drawable.lucky_background), Modifier.matchParentSize())
 
             Box(
                 Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
@@ -168,7 +169,8 @@ internal fun App(
             BottomPanel(
                 viewModel,
                 viewModel.bottomBarItems,
-                Modifier.align(Alignment.BottomCenter).dropTarget(state = dragAndDropState,
+                Modifier.align(Alignment.BottomCenter).dropTarget(
+                    state = dragAndDropState,
                     key = "bottom panel",
                     onDrop = { dragItemState ->
                         val item = dragItemState.data
@@ -226,17 +228,25 @@ fun Tabs(state: MoeViewModel, dragAndDropState: DragAndDropState<Item>) {
     //                else -> false
     //            }
     //    }
-    Column(Modifier.fillMaxSize()) {
-        TabRow(
-            selectedTabIndex = selectedIndex,
-        ) {
+    Column(Modifier.fillMaxSize().background(color = Color(1593835520))) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
             list.forEachIndexed { index, text ->
                 val selected = selectedIndex == index
-                Tab(
-                    selected = selected,
-                    onClick = { selectedIndex = index },
-                    text = { Text(text = text, fontSize = 16.sp, color = Color.White) },
-                    modifier = Modifier.dropTarget(state = dragAndDropState,
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .padding(6.dp)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(if (selected) Colors.pink else Colors.mainBackground)
+                        .clickable {
+                            selectedIndex = index
+                        }
+                        .padding(12.dp)
+                    .weight(0.333f)
+
+                    .dropTarget(
+                        state = dragAndDropState,
                         key = text,
                         onDrop = { dragItemState ->
                             val item = dragItemState.data
@@ -257,11 +267,13 @@ fun Tabs(state: MoeViewModel, dragAndDropState: DragAndDropState<Item>) {
                         onDragEnter = {
 
                         })
-                )
+                ) {
+                    Text(text = text, fontSize = 16.sp, color = Color.White)
+                }
             }
         }
 
-        Box(Modifier.fillMaxSize().background(color = Color(1593835520))) {
+        Box(Modifier.fillMaxSize()) {
             androidx.compose.animation.AnimatedVisibility(
                 selectedIndex == 0, enter = fadeIn(),
                 exit = fadeOut()

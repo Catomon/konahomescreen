@@ -33,6 +33,8 @@ fun main() = application {
         modules(appModule)
     }
 
+    System.setProperty("skiko.renderApi", "D3D11")
+
     val maxSize = Toolkit.getDefaultToolkit().screenSize
 
     val windowState = rememberWindowState(

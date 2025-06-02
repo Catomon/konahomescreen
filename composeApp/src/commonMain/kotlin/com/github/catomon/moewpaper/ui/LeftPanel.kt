@@ -43,7 +43,7 @@ fun LeftPanel(viewModel: MoeViewModel, modifier: Modifier = Modifier.Companion) 
     LaunchedEffect(Unit) {
         while (true) {
             items = DesktopUtils.getWindows()
-            delay(5000)
+            delay(3000)
         }
     }
 
