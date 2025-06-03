@@ -126,7 +126,8 @@ internal fun App(
                 })
             }, contentAlignment = Alignment.Center
         ) {
-            Background(imageResource(Res.drawable.lucky_background), Modifier.matchParentSize())
+            if (appSettings.backgroundEffect)
+                Background(imageResource(Res.drawable.lucky_background), Modifier.matchParentSize())
 
             Box(
                 Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(

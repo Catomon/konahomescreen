@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -106,6 +107,14 @@ fun Options(
                 }
             }
 
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Effects", color = Color.White)
+
+                Checkbox(appSettings.backgroundEffect, {
+                   viewModel.updateSettings(appSettings.copy(backgroundEffect = it))
+                })
+            }
+
             Button(onClick = {
                 viewModel.saveSettings()
                 exitApplication()
@@ -114,13 +123,13 @@ fun Options(
             }
         }
 
-        Text(
-            "Options",
-            fontSize = 16.sp,
-            color = Color.Black,
-            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
-                .background(Color.White),
-            textAlign = TextAlign.Center,
-        )
+//        Text(
+//            "Options",
+//            fontSize = 16.sp,
+//            color = Color.Black,
+//            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
+//                .background(Color.White),
+//            textAlign = TextAlign.Center,
+//        )
     }
 }
