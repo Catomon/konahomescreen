@@ -22,11 +22,8 @@ import kotlinx.io.files.Path
 class MoeViewModel() : ViewModel() {
 
     val bottomBarItems = mutableStateListOf<Item>()
-
     val homeItems = mutableStateListOf<Item>()
-
     val userItems = mutableStateListOf<Item>()
-
     val desktopItems = mutableStateListOf<Item>()
 
     private val bottomBarStore: KStore<List<Item>> =
@@ -78,9 +75,9 @@ class MoeViewModel() : ViewModel() {
         _appSettings.value = settings
     }
 
-    fun saveSettings(settings: AppSettings = appSettings.value) {
+    fun saveSettings() {
         viewModelScope.launch {
-            settingsStore.set(settings)
+            settingsStore.set(appSettings.value)
         }
     }
 
@@ -108,6 +105,11 @@ class MoeViewModel() : ViewModel() {
     }
 
     fun addItemToBottomPanel(item: Item) {
+        if (appSettings.value.tour) {
+            updateSettings(appSettings.value.copy(tour = false))
+            saveSettings()
+        }
+
         viewModelScope.launch {
             bottomBarItems.removeIf { it.uri == item.uri }
             bottomBarItems.add(item)
