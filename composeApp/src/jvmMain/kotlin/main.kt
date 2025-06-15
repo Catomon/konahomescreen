@@ -1,4 +1,5 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,7 +48,7 @@ fun main() = application {
     val viewModel: MoeViewModel = get(MoeViewModel::class.java)
 
     Window(
-        title = "Moe Wallpaper",
+        title = "KonaHomescreen",
         state = windowState,
         onCloseRequest = ::exitApplication,
         resizable = false,
@@ -126,17 +127,11 @@ fun main() = application {
         DevelopmentEntryPoint {
             App(
                 viewModel = viewModel,
-                modifier = Modifier.padding(bottom = bottomPadding.dp),
+                padding = PaddingValues(bottom = bottomPadding.dp),
                 exitApplication = this@application::exitApplication
             )
         }
     }
-}
-
-@Preview
-@Composable
-fun AppPreview() {
-    App()
 }
 
 fun getWndScrCenterPos(windowWidth: Int, windowHeight: Int): IntOffset {

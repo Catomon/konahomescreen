@@ -70,7 +70,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "Moe Wallpaper"
+            packageName = "KonaHomescreen"
             packageVersion = "1.0.0"
 
             buildTypes.release.proguard {

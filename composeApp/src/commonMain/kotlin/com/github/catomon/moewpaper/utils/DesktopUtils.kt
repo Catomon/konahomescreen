@@ -39,7 +39,7 @@ object DesktopUtils {
             it.title.isNotBlank() && it.title !in listOf(
                 "Microsoft Text Input Application",
                 "Program Manager",
-                "Moe Wallpaper"
+                "KonaHomescreen"
             )
         }.sortedBy { it.title }.also { println(it.joinToString("\n") { it.title }) }
     }

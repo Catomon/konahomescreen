@@ -9,9 +9,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
@@ -36,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.catomon.moewpaper.theme.AppTheme
 import com.github.catomon.moewpaper.theme.Colors
-import com.github.catomon.moewpaper.ui.Background
+import com.github.catomon.moewpaper.ui.BackgroundEffect
 import com.github.catomon.moewpaper.ui.BottomPanel
 import com.github.catomon.moewpaper.ui.Item
 import com.github.catomon.moewpaper.ui.ItemsGridList
@@ -52,6 +55,7 @@ import kotlinx.coroutines.delay
 import moe_wallpaper.composeapp.generated.resources.Res
 import moe_wallpaper.composeapp.generated.resources.`lucky bg`
 import moe_wallpaper.composeapp.generated.resources.lucky_background
+import moe_wallpaper.composeapp.generated.resources.star
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.java.KoinJavaComponent.get
@@ -71,6 +75,7 @@ data class UiState(
 @Composable
 internal fun App(
     viewModel: MoeViewModel = get(MoeViewModel::class.java),
+    padding: PaddingValues,
     modifier: Modifier = Modifier,
     exitApplication: () -> Unit = { }
 ) = AppTheme {
@@ -100,97 +105,114 @@ internal fun App(
     DragAndDropContainer(
         state = dragAndDropState, Modifier.fillMaxSize()
     ) {
-        Box(
-            Modifier.background(color = Colors.mainBackground)
-                .fillMaxSize() then modifier.pointerInput(
-                Unit
-            ) {
-                detectVerticalDragGestures(onDragStart = { offset ->
-                    totalDragDistance = 0f
-                }, onVerticalDrag = { change, dragAmount ->
-                    totalDragDistance += dragAmount
-                    if (totalDragDistance >= 200) {
-                        if (state.shownPage == Pages.OPTIONS) {
-                            viewModel.showPage(Pages.NONE)
-                            totalDragDistance = 0f
-                        } else viewModel.showPage(Pages.ITEMS)
-                    }
-                    if (totalDragDistance <= -200) {
-                        if (state.shownPage == Pages.ITEMS) {
-                            viewModel.showPage(Pages.NONE)
-                            totalDragDistance = 0f
-                        } else viewModel.showPage(Pages.OPTIONS)
-                    }
-                }, onDragEnd = {
-                    totalDragDistance = 0f
-                })
-            }, contentAlignment = Alignment.Center
-        ) {
-            if (appSettings.backgroundEffect)
-                Background(imageResource(Res.drawable.lucky_background), Modifier.matchParentSize())
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.background(color = Colors.mainBackground)) {
+            Image(
+                key(backgroundPainter) {
+                    backgroundPainter ?: painterResource(Res.drawable.`lucky bg`)
+                },
+                "background",
+                modifier = Modifier.fillMaxSize().alpha(appSettings.backgroundAlpha - 0.25f).blur(8.dp),
+                contentScale = ContentScale.FillWidth
+            )
 
             Box(
-                Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
-                    RoundedCornerShape(30.dp)
-                ), contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    key(backgroundPainter) {
-                        backgroundPainter ?: painterResource(Res.drawable.`lucky bg`)
-                    },
-                    "background",
-                    modifier = Modifier.clip(
-                        RoundedCornerShape(34.dp)
-                    ).alpha(appSettings.backgroundAlpha),
-                    contentScale = ContentScale.Crop
-                )
-
-                AnimatedVisibility(
-                    state.shownPage == Pages.ITEMS,
-                    modifier = Modifier.fillMaxSize()
+                Modifier
+                    .fillMaxSize() then modifier.padding(padding).pointerInput(
+                    Unit
                 ) {
-                    Tabs(viewModel, dragAndDropState)
-                }
-
-                AnimatedVisibility(
-                    state.shownPage == Pages.OPTIONS,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Options(viewModel, Modifier.fillMaxSize(), exitApplication = exitApplication)
-                }
-            }
-
-            Text(
-                dateText,
-                modifier = Modifier.padding(top = 16.dp).align(Alignment.TopCenter),
-                fontSize = 32.sp,
-                color = Color.White
-            )
-
-            BottomPanel(
-                viewModel,
-                viewModel.bottomBarItems,
-                Modifier.align(Alignment.BottomCenter).dropTarget(
-                    state = dragAndDropState,
-                    key = "bottom panel",
-                    onDrop = { dragItemState ->
-                        val item = dragItemState.data
-                        viewModel.addItemToBottomPanel(item)
-                    },
-                    onDragEnter = {
-
+                    detectVerticalDragGestures(onDragStart = { offset ->
+                        totalDragDistance = 0f
+                    }, onVerticalDrag = { change, dragAmount ->
+                        totalDragDistance += dragAmount
+                        if (totalDragDistance >= 200) {
+                            if (state.shownPage == Pages.OPTIONS) {
+                                viewModel.showPage(Pages.NONE)
+                                totalDragDistance = 0f
+                            } else viewModel.showPage(Pages.ITEMS)
+                        }
+                        if (totalDragDistance <= -200) {
+                            if (state.shownPage == Pages.ITEMS) {
+                                viewModel.showPage(Pages.NONE)
+                                totalDragDistance = 0f
+                            } else viewModel.showPage(Pages.OPTIONS)
+                        }
+                    }, onDragEnd = {
+                        totalDragDistance = 0f
                     })
-            )
+                }, contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
+                        RoundedCornerShape(30.dp)
+                    ), contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        key(backgroundPainter) {
+                            backgroundPainter ?: painterResource(Res.drawable.`lucky bg`)
+                        },
+                        "background",
+                        modifier = Modifier.clip(
+                            RoundedCornerShape(34.dp)
+                        ).alpha(appSettings.backgroundAlpha),
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
-            LeftPanel(viewModel, Modifier.align(Alignment.CenterStart))
+                if (appSettings.backgroundEffect)
+                    BackgroundEffect(imageResource(Res.drawable.star), Modifier.matchParentSize())
 
-            if (viewModel.bottomBarItems.isEmpty()) {
+                Box(
+                    Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
+                        RoundedCornerShape(30.dp)
+                    ), contentAlignment = Alignment.Center
+                ) {
+                    AnimatedVisibility(
+                        state.shownPage == Pages.ITEMS,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Tabs(viewModel, dragAndDropState)
+                    }
+
+                    AnimatedVisibility(
+                        state.shownPage == Pages.OPTIONS,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Options(viewModel, Modifier.fillMaxSize(), exitApplication = exitApplication)
+                    }
+                }
+
                 Text(
-                    "Swipe down(v) to open desktop. Swipe up(^) to open settings. Swipe opposite to close.",
-                    color = Color.White,
+                    dateText,
+                    modifier = Modifier.padding(top = 16.dp).align(Alignment.TopCenter),
                     fontSize = 32.sp,
-                    modifier = Modifier.width(225.dp).align(Alignment.CenterEnd)
+                    color = Color.White
                 )
+
+                BottomPanel(
+                    viewModel,
+                    viewModel.bottomBarItems,
+                    Modifier.align(Alignment.BottomCenter).dropTarget(
+                        state = dragAndDropState,
+                        key = "bottom panel",
+                        onDrop = { dragItemState ->
+                            val item = dragItemState.data
+                            viewModel.addItemToBottomPanel(item)
+                        },
+                        onDragEnter = {
+
+                        })
+                )
+
+                LeftPanel(viewModel, Modifier.align(Alignment.CenterStart))
+
+                if (viewModel.bottomBarItems.isEmpty()) {
+                    Text(
+                        "Swipe down(v) to open desktop. Swipe up(^) to open settings. Swipe opposite to close.",
+                        color = Color.White,
+                        fontSize = 32.sp,
+                        modifier = Modifier.width(225.dp).align(Alignment.CenterEnd)
+                    )
+                }
             }
         }
     }

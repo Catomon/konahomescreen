@@ -1,7 +1,9 @@
 package com.github.catomon.moewpaper.ui
 
+import androidx.compose.animation.VectorConverter
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -13,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -21,9 +24,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
-private val colors =
+private val colorTints =
     listOf(ColorFilter.tint(Colors.pink), ColorFilter.tint(Colors.blue), ColorFilter.tint(Colors.violet))
-private val randomTint get() = colors.random()
+private val randomTint get() = colorTints.random()
+
+private val colors =
+    listOf(Colors.pink, Colors.blue, Colors.violet)
+private val randomColor get() = colors.random()
 
 //@Composable
 //fun TiledBackgroundImage(image: ImageBitmap, modifier: Modifier = Modifier) {
@@ -67,11 +74,11 @@ private data class Star(
     var x: Float = Random.nextFloat(),
     var y: Animatable<Float, AnimationVector1D> = Animatable(-0.1f - Random.nextFloat()),
     var rotation: Animatable<Float, AnimationVector1D> = Animatable(0f),
-    var color: ColorFilter = randomTint
+    var color: Animatable<Color, AnimationVector4D> = Animatable<Color, AnimationVector4D>(randomColor, Color.VectorConverter(randomColor.colorSpace))
 )
 
 @Composable
-fun Background(image: ImageBitmap, modifier: Modifier = Modifier) {
+fun BackgroundEffect(image: ImageBitmap, modifier: Modifier = Modifier) {
     BoxWithConstraints(
         modifier = modifier
     ) {
@@ -110,13 +117,20 @@ fun Background(image: ImageBitmap, modifier: Modifier = Modifier) {
 
             stars.forEach {
                 coroutineScope.launch {
+                    while (true) {
+                        delay(Random.nextLong(1000, 6000))
+                        it.color.animateTo(randomColor, tween(1500))
+                    }
+                }
+
+                coroutineScope.launch {
                     animateStar(it)
                 }
             }
             while (true) {
                 stars.forEach {
                     if (it.y.value >= 1.1f) {
-                        it.color = randomTint
+//                        it.color = randomTint
                         coroutineScope.launch {
                             animateStar(it)
                         }
@@ -146,7 +160,7 @@ fun Background(image: ImageBitmap, modifier: Modifier = Modifier) {
                     drawImage(
                         image,
                         topLeft = Offset(xPos, yPos),
-                        colorFilter = star.color
+                        colorFilter = ColorFilter.tint(star.color.value)
                     )
                 }
             }
