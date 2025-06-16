@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +42,7 @@ fun ItemsGridList(
         contentPadding = PaddingValues(vertical = 16.dp)
     ) {
         items(items) { item ->
-            Box(Modifier.size(100.dp)) {
+            Box(Modifier.size(100.dp), contentAlignment = Alignment.Center) {
                 TooltipArea(
                     tooltip = {
                         Box(
@@ -67,15 +69,15 @@ fun ItemsGridList(
                     ) {
                         ItemButton(
                             item,
-                            Modifier.padding(vertical = 4.dp).background(
-                                color = Color(939524096), shape = RoundedCornerShape(12.dp)
-                            ).padding(0.dp),
-                            onRemove,
+//                            Modifier.padding(vertical = 4.dp).background(
+//                                color = Color(939524096), shape = RoundedCornerShape(12.dp)
+//                            ).padding(0.dp),
+                            onRemove = onRemove,
                         )
                     }
                 }
 
-                if (showNames) {
+                if (showNames || item.type == ItemType.FOLDER) {
                     Box(
                         modifier = Modifier.background(
                             Color.White, shape = RoundedCornerShape(8.dp)
@@ -84,7 +86,10 @@ fun ItemsGridList(
                         Text(
                             item.name,
                             fontSize = 16.sp,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }

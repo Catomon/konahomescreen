@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,8 +52,7 @@ import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import kotlinx.coroutines.delay
 import moe_wallpaper.composeapp.generated.resources.Res
-import moe_wallpaper.composeapp.generated.resources.`lucky bg`
-import moe_wallpaper.composeapp.generated.resources.lucky_background
+import moe_wallpaper.composeapp.generated.resources.konata
 import moe_wallpaper.composeapp.generated.resources.star
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
@@ -108,7 +106,7 @@ internal fun App(
         Box(contentAlignment = Alignment.Center, modifier = Modifier.background(color = Colors.mainBackground)) {
             Image(
                 key(backgroundPainter) {
-                    backgroundPainter ?: painterResource(Res.drawable.`lucky bg`)
+                    backgroundPainter ?: painterResource(Res.drawable.konata)
                 },
                 "background",
                 modifier = Modifier.fillMaxSize().alpha(appSettings.backgroundAlpha - 0.25f).blur(8.dp),
@@ -141,21 +139,23 @@ internal fun App(
                     })
                 }, contentAlignment = Alignment.Center
             ) {
-                Box(
-                    Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
-                        RoundedCornerShape(30.dp)
-                    ), contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        key(backgroundPainter) {
-                            backgroundPainter ?: painterResource(Res.drawable.`lucky bg`)
-                        },
-                        "background",
-                        modifier = Modifier.clip(
-                            RoundedCornerShape(34.dp)
-                        ).alpha(appSettings.backgroundAlpha),
-                        contentScale = ContentScale.Crop
-                    )
+                AnimatedVisibility(state.shownPage == Pages.NONE, enter = fadeIn(), exit = fadeOut()) {
+                    Box(
+                        Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
+                            RoundedCornerShape(30.dp)
+                        ), contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            key(backgroundPainter) {
+                                backgroundPainter ?: painterResource(Res.drawable.konata)
+                            },
+                            "background",
+                            modifier = Modifier.clip(
+                                RoundedCornerShape(34.dp)
+                            ).alpha(appSettings.backgroundAlpha),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
 
                 if (appSettings.backgroundEffect)
@@ -251,7 +251,7 @@ fun Tabs(state: MoeViewModel, dragAndDropState: DragAndDropState<Item>) {
     //                else -> false
     //            }
     //    }
-    Column(Modifier.fillMaxSize().background(color = Color(1593835520))) {
+    Column(Modifier.fillMaxSize()) { //.background(color = Color(1593835520))
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
             list.forEachIndexed { index, text ->
                 val selected = selectedIndex == index
@@ -260,36 +260,36 @@ fun Tabs(state: MoeViewModel, dragAndDropState: DragAndDropState<Item>) {
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .padding(6.dp)
-                    .clip(RoundedCornerShape(32.dp))
-                    .background(if (selected) Colors.pink else Colors.mainBackground)
+                        .clip(RoundedCornerShape(32.dp))
+                        .background(if (selected) Colors.pink else Colors.mainBackground)
                         .clickable {
                             selectedIndex = index
                         }
                         .padding(12.dp)
-                    .weight(0.333f)
+                        .weight(0.333f)
 
-                    .dropTarget(
-                        state = dragAndDropState,
-                        key = text,
-                        onDrop = { dragItemState ->
-                            val item = dragItemState.data
-                            when (index) {
-                                0 -> {
-                                    //state.addItemToHome(item)
+                        .dropTarget(
+                            state = dragAndDropState,
+                            key = text,
+                            onDrop = { dragItemState ->
+                                val item = dragItemState.data
+                                when (index) {
+                                    0 -> {
+                                        //state.addItemToHome(item)
+                                    }
+
+                                    1 -> {
+                                        state.addItemToHome(item)
+                                    }
+
+                                    2 -> {
+                                        state.addItemToUser(item)
+                                    }
                                 }
+                            },
+                            onDragEnter = {
 
-                                1 -> {
-                                    state.addItemToHome(item)
-                                }
-
-                                2 -> {
-                                    state.addItemToUser(item)
-                                }
-                            }
-                        },
-                        onDragEnter = {
-
-                        })
+                            })
                 ) {
                     Text(text = text, fontSize = 16.sp, color = Color.White)
                 }

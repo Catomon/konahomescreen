@@ -9,6 +9,7 @@ import com.github.catomon.moewpaper.UiState
 import com.github.catomon.moewpaper.data.AppSettings
 import com.github.catomon.moewpaper.desktopFolder
 import com.github.catomon.moewpaper.userDataFolder
+import com.github.catomon.moewpaper.utils.LnkParser
 import com.github.catomon.moewpaper.utils.SystemIconUtils
 import io.github.xxfast.kstore.KStore
 import io.github.xxfast.kstore.file.storeOf
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.files.Path
+import java.io.File
 
 class MoeViewModel() : ViewModel() {
 
@@ -52,11 +54,20 @@ class MoeViewModel() : ViewModel() {
         val files =
             (desktopFolder.listFiles()?.toMutableList() ?: mutableListOf()).toMutableStateList()
         desktopItems.addAll(files.map { file ->
+            println(file.path)
+            val targetFile = if (file.extension == "lnk") LnkParser(file).target?.let { File(it) } ?: file else file
+            val type = when {
+                targetFile.isDirectory -> ItemType.FOLDER
+                targetFile.isFile -> ItemType.FILE
+                else -> ItemType.OTHER
+            }
+
             Item(
                 file.nameWithoutExtension,
                 SystemIconUtils.extractIconFromFileAndCache(file.path)
                     ?: throw NullPointerException("extractIconFromFileAndCache fail: ${file.path}."),
-                file.toURI().toString()
+                file.toURI().toString(),
+                type
             )
         })
 

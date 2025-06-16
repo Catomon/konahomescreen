@@ -36,11 +36,11 @@ object DesktopUtils {
 
     fun getWindows(): List<DesktopWindow> {
         return WindowUtils.getAllWindows(true).filter {
-            it.title.isNotBlank() && it.title !in listOf(
+          (  it.title.isNotBlank() && it.title !in listOf(
                 "Microsoft Text Input Application",
                 "Program Manager",
                 "KonaHomescreen"
-            )
+            )) || MyUser32.INSTANCE.IsIconic(it.hwnd)
         }.sortedBy { it.title }.also { println(it.joinToString("\n") { it.title }) }
     }
 

@@ -4,13 +4,16 @@ import androidx.compose.foundation.ContextMenuArea
 import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -127,11 +130,96 @@ fun ItemButton(
     }
 }
 
+@Composable
+fun FolderItem(
+    item: Item,
+    modifier: Modifier = Modifier,
+    onRemove: ((Item) -> Unit)?,
+    onClear: (() -> Unit)? = null
+) {
+    var loading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(loading) {
+        if (loading) {
+            delay(1000)
+            loading = false
+        }
+    }
+
+    var running by remember { mutableStateOf(false) }
+    var currentRunningId by remember { mutableStateOf("") }
+
+    val itemListener: ItemListener = remember {
+        ItemListener(onStart = {
+            currentRunningId = it
+            running = true
+        }, onClose = {
+            running = false
+            if (currentRunningId == it) currentRunningId = ""
+        })
+    }
+
+    ContextMenuArea(items = {
+        listOfNotNull(
+            if (onRemove != null) ContextMenuItem("Remove", onClick = {
+                onRemove(item)
+            }) else null,
+            if (currentRunningId.isNotBlank()) ContextMenuItem("Close App", onClick = {
+                try {
+                    DesktopUtils.killProcess(currentRunningId.toLong())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }) else null,
+            if (onClear != null) ContextMenuItem("Clear All", onClick = {
+                onClear()
+            }) else null,
+        )
+    }) {
+        Row(modifier.size(40.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center){
+            Box(Modifier.size(32.dp).let {
+                if (running) it.drawWithContent {
+                    drawContent()
+
+                    drawCircle(color = Color.White, center = Offset.Zero, radius = 8f)
+                }
+                else it
+            }, contentAlignment = Alignment.Center) {
+                CachedIcon(item.cachedIconId,
+                    Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)).clickable {
+                        if (!running) {
+                            // if null assume its not bottom bar
+                            if (onRemove == null)
+                                Desktop.getDesktop().open(File(URI.create(item.uri)))
+                            else
+                                ItemOpener.open(item, if (running) null else itemListener)
+                        }
+
+                        loading = true
+                    })
+
+                if (loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(32.dp), color = Color.White
+                    )
+                }
+            }
+
+            Text(item.name)
+        }
+    }
+}
+
+enum class ItemType {
+    FOLDER, FILE, URL, OTHER
+}
+
 @Serializable
 class Item(
     val name: String,
     val cachedIconId: String,
     val uri: String,
+    val type: ItemType = ItemType.OTHER
 )
 
 @Composable

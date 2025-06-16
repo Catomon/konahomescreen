@@ -10,7 +10,7 @@ object ItemOpener {
     fun open(item: Item, itemListener: ItemListener? = null) {
         val uri = item.uri
         val uriFormat = uri.substringBefore(":")
-        val realFileName = LnkParser(File(URI.create(item.uri))).realFilename
+        val realFileName = LnkParser(File(URI.create(item.uri))).target
         val fileExt = realFileName?.split(".")?.last()
         when (uriFormat) {
             "file" -> {

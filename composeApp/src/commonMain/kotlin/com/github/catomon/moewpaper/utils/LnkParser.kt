@@ -1,5 +1,7 @@
 package com.github.catomon.moewpaper.utils
 
+import mslinks.ShellLink
+import rogga.logWarn
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -9,19 +11,25 @@ class LnkParser(f: File) {
     var isDirectory: Boolean = false
         private set
 
-    /**
-     * Returns the value of the instance variable 'isLocal'.
-     *
-     * @return Returns the isLocal.
-     */
     var isLocal: Boolean = false
         private set
 
-    var realFilename: String? = null
+    var target: String? = null
         private set
 
     init {
-        parse(f)
+        try {
+            val link = ShellLink(f)
+            target = link.resolveTarget()
+            isDirectory = f.isDirectory
+        } catch (e: Exception) {
+            logWarn { e.localizedMessage }
+            try {
+                parse(f)
+            } catch (e: Exception) {
+                logWarn { e.localizedMessage }
+            }
+        }
     }
 
     @Throws(IOException::class)
@@ -83,7 +91,7 @@ class LnkParser(f: File) {
         if (isLocal) {
             val basename_offset = link[file_start + basename_offset_offset] + file_start
             val basename = getNullDelimitedString(link, basename_offset)
-            realFilename = basename + finalname
+            target = basename + finalname
         } else {
             val networkVolumeTable_offset =
                 link[file_start + networkVolumeTable_offset_offset] + file_start
@@ -91,7 +99,7 @@ class LnkParser(f: File) {
             val shareName_offset =
                 (link[networkVolumeTable_offset + shareName_offset_offset] + networkVolumeTable_offset)
             val shareName = getNullDelimitedString(link, shareName_offset)
-            realFilename = shareName + "\\" + finalname
+            target = shareName + "\\" + finalname
         }
     }
 

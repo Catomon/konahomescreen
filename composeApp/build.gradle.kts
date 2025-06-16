@@ -58,7 +58,6 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
         }
-
     }
 }
 
@@ -66,7 +65,7 @@ compose.desktop {
     application {
         mainClass = "MainKt"
 
-        javaHome = System.getenv("JDK_21")
+//        javaHome = System.getenv("JDK_21")
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
@@ -74,9 +73,8 @@ compose.desktop {
             packageVersion = "1.0.0"
 
             buildTypes.release.proguard {
-//                configurationFiles.from(project.file("compose-desktop.pro"))
-                isEnabled = false
-
+                configurationFiles.from(project.file("compose-desktop.pro"))
+                isEnabled = true
             }
 
             linux {

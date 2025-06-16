@@ -33,7 +33,9 @@ import androidx.compose.ui.unit.sp
 import com.github.catomon.moewpaper.utils.DesktopUtils
 import com.github.catomon.moewpaper.utils.toggleMinimized
 import com.sun.jna.platform.DesktopWindow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -42,7 +44,7 @@ fun LeftPanel(viewModel: MoeViewModel, modifier: Modifier = Modifier.Companion) 
 
     LaunchedEffect(Unit) {
         while (true) {
-            items = DesktopUtils.getWindows()
+            items = withContext(Dispatchers.Default) { DesktopUtils.getWindows() }
             delay(3000)
         }
     }
