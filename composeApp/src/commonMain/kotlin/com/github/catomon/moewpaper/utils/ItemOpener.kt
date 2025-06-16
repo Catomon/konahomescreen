@@ -10,7 +10,8 @@ object ItemOpener {
     fun open(item: Item, itemListener: ItemListener? = null) {
         val uri = item.uri
         val uriFormat = uri.substringBefore(":")
-        val realFileName = LnkParser(File(URI.create(item.uri))).target
+        val file = File(URI.create(item.uri))
+        val realFileName = if (file.extension == "lnk") LnkParser(file).target else file.absolutePath
         val fileExt = realFileName?.split(".")?.last()
         when (uriFormat) {
             "file" -> {
@@ -32,7 +33,7 @@ object ItemOpener {
                     }
 
                     else -> {
-                        Desktop.getDesktop().open(File(URI.create(item.uri)))
+                        Desktop.getDesktop().open(file)
                     }
                 }
             }

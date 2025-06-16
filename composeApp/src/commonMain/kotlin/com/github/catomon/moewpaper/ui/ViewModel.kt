@@ -54,7 +54,6 @@ class MoeViewModel() : ViewModel() {
         val files =
             (desktopFolder.listFiles()?.toMutableList() ?: mutableListOf()).toMutableStateList()
         desktopItems.addAll(files.map { file ->
-            println(file.path)
             val targetFile = if (file.extension == "lnk") LnkParser(file).target?.let { File(it) } ?: file else file
             val type = when {
                 targetFile.isDirectory -> ItemType.FOLDER

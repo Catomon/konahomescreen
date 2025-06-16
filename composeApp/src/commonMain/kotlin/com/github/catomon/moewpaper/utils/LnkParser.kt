@@ -23,11 +23,11 @@ class LnkParser(f: File) {
             target = link.resolveTarget()
             isDirectory = f.isDirectory
         } catch (e: Exception) {
-            logWarn { e.localizedMessage }
+            logWarn { e.message ?: "i cant man" }
             try {
                 parse(f)
             } catch (e: Exception) {
-                logWarn { e.localizedMessage }
+                logWarn { e.message ?: "i cant" }
             }
         }
     }

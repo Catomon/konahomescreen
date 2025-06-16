@@ -18,19 +18,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.rotate
 import com.github.catomon.moewpaper.theme.Colors
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
-
-private val colorTints =
-    listOf(ColorFilter.tint(Colors.pink), ColorFilter.tint(Colors.blue), ColorFilter.tint(Colors.violet))
-private val randomTint get() = colorTints.random()
-
-private val colors =
-    listOf(Colors.pink, Colors.blue, Colors.violet)
-private val randomColor get() = colors.random()
 
 //@Composable
 //fun TiledBackgroundImage(image: ImageBitmap, modifier: Modifier = Modifier) {
@@ -70,19 +64,42 @@ private val randomColor get() = colors.random()
 //    }
 //}
 
+private val colorTints =
+    listOf(ColorFilter.tint(Colors.pink), ColorFilter.tint(Colors.blue), ColorFilter.tint(Colors.violet))
+private val randomTint get() = colorTints.random()
+
+private val colors =
+    listOf(Colors.pink, Colors.blue, Colors.violet)
+private val randomColor get() = colors.random()
+
 private data class Star(
     var x: Float = Random.nextFloat(),
     var y: Animatable<Float, AnimationVector1D> = Animatable(-0.1f - Random.nextFloat()),
     var rotation: Animatable<Float, AnimationVector1D> = Animatable(0f),
-    var color: Animatable<Color, AnimationVector4D> = Animatable<Color, AnimationVector4D>(randomColor, Color.VectorConverter(randomColor.colorSpace))
+    var color: Animatable<Color, AnimationVector4D> = Animatable<Color, AnimationVector4D>(
+        randomColor,
+        Color.VectorConverter(randomColor.colorSpace)
+    )
 )
+
+private suspend fun animateStar(star: Star) {
+    star.y.snapTo(-0.1f - Random.nextFloat())
+    star.y.animateTo(
+        1.1f,
+        initialVelocity = 0f,
+        animationSpec = tween(
+            (12000 + 12000f * (Random.nextFloat() * 4f)).toInt(),
+            easing = LinearEasing
+        )
+    )
+}
 
 @Composable
 fun BackgroundEffect(image: ImageBitmap, modifier: Modifier = Modifier) {
     BoxWithConstraints(
         modifier = modifier
     ) {
-        var stars = remember {
+        val stars = remember {
             List(24) {
                 Star()
             }
@@ -103,35 +120,24 @@ fun BackgroundEffect(image: ImageBitmap, modifier: Modifier = Modifier) {
 //                }
 //            }
 
-            suspend fun animateStar(star: Star) {
-                star.y.snapTo(-0.1f - Random.nextFloat())
-                star.y.animateTo(
-                    1.1f,
-                    initialVelocity = 0f,
-                    animationSpec = tween(
-                        (12000 + 12000f * (Random.nextFloat() * 4f)).toInt(),
-                        easing = LinearEasing
-                    )
-                )
-            }
-
             stars.forEach {
-                coroutineScope.launch {
+                coroutineScope.launch(Dispatchers.Default) {
                     while (true) {
                         delay(Random.nextLong(1000, 6000))
                         it.color.animateTo(randomColor, tween(1500))
                     }
                 }
 
-                coroutineScope.launch {
+                coroutineScope.launch(Dispatchers.Default) {
                     animateStar(it)
                 }
             }
+
             while (true) {
                 stars.forEach {
                     if (it.y.value >= 1.1f) {
 //                        it.color = randomTint
-                        coroutineScope.launch {
+                        coroutineScope.launch(Dispatchers.Default) {
                             animateStar(it)
                         }
                     }
@@ -142,19 +148,19 @@ fun BackgroundEffect(image: ImageBitmap, modifier: Modifier = Modifier) {
         }
 
         Canvas(Modifier.fillMaxSize()) {
+            drawIntoCanvas {  }
+
             val imageWidth = image.width.toFloat()
             val imageHeight = image.height.toFloat()
             val canvasWidth = size.width
             val canvasHeight = size.height
 
             stars.forEach { star ->
-                // Calculate the position where the image should be drawn
                 val xPos = star.x * (canvasWidth - imageWidth / 2)
                 val yPos = star.y.value * (canvasHeight - imageHeight / 2)
 
-                // Rotate around the center of the image
                 rotate(
-                    degrees = star.rotation.value, // your rotation angle in degrees
+                    degrees = star.rotation.value,
                     pivot = Offset(xPos + imageWidth / 2, yPos + imageHeight / 2)
                 ) {
                     drawImage(

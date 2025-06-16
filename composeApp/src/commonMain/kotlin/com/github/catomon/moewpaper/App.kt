@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.pointer.pointerInput
@@ -139,23 +140,24 @@ internal fun App(
                     })
                 }, contentAlignment = Alignment.Center
             ) {
-                AnimatedVisibility(state.shownPage == Pages.NONE, enter = fadeIn(), exit = fadeOut()) {
-                    Box(
-                        Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
-                            RoundedCornerShape(30.dp)
-                        ), contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            key(backgroundPainter) {
-                                backgroundPainter ?: painterResource(Res.drawable.konata)
-                            },
-                            "background",
-                            modifier = Modifier.clip(
-                                RoundedCornerShape(34.dp)
-                            ).alpha(appSettings.backgroundAlpha),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                AnimatedVisibility(state.shownPage != Pages.ITEMS, enter = fadeIn(), exit = fadeOut()) {
+                    if (viewModel.appSettings.value.backgroundScale > 0f)
+                        Box(
+                            Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
+                                RoundedCornerShape(30.dp)
+                            ).fillMaxSize(), contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                key(backgroundPainter) {
+                                    backgroundPainter ?: painterResource(Res.drawable.konata)
+                                },
+                                "background",
+                                modifier = Modifier.scale(viewModel.appSettings.value.backgroundScale).clip(
+                                    RoundedCornerShape(34.dp)
+                                ).alpha(appSettings.backgroundAlpha),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
                 }
 
                 if (appSettings.backgroundEffect)
