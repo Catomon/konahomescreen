@@ -75,26 +75,26 @@ fun ItemsGridList(
                             onRemove = onRemove,
                         )
                     }
-                }
+//                }
 
-                if (showNames || item.type == ItemType.FOLDER) {
-                    Box(
-                        modifier = Modifier.background(
-                            Color.White, shape = RoundedCornerShape(8.dp)
-                        ).align(Alignment.BottomCenter), contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            item.name,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
+                    if (showNames || item.type == ItemType.FOLDER) {
+                        Box(
+                            modifier = Modifier.background(
+                                Color.White, shape = RoundedCornerShape(8.dp)
+                            ).align(Alignment.BottomCenter), contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                item.name,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
-

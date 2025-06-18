@@ -1,13 +1,9 @@
 package com.github.catomon.moewpaper.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.TooltipArea
-import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
@@ -19,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,19 +28,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.catomon.moewpaper.utils.DesktopUtils
 import com.github.catomon.moewpaper.utils.toggleMinimized
 import com.sun.jna.platform.DesktopWindow
 import compose.icons.FeatherIcons
-import compose.icons.feathericons.ChevronUp
 import compose.icons.feathericons.X
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -72,56 +64,39 @@ fun LeftPanel(viewModel: MoeViewModel, modifier: Modifier = Modifier.Companion) 
                 )
             }
         } else items(items) { window ->
-            TooltipArea(
-                tooltip = {
-                    Box(
-                        modifier = Modifier.Companion.background(
-                            Color.Companion.White, shape = RoundedCornerShape(8.dp)
-                        ), contentAlignment = Alignment.Companion.Center
-                    ) {
-                        Text(
-                            window.title,
-                            fontSize = 16.sp,
-                            modifier = Modifier.Companion.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                    }
-                }, tooltipPlacement = TooltipPlacement.CursorPoint(
-                    offset = DpOffset(16.dp, 16.dp)
-                ), delayMillis = 300
-            ) {
+            val iconName = remember(window.filePath) { DesktopUtils.getIcon(window) }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+                if (iconName != null)
+                    CachedIcon(
+                        iconName,
+                        Modifier.padding(12.dp).size(64.dp)
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp)).clickable {
+                                window.toggleMinimized()
+                            }
+                    )
 
-                val iconName = remember(window.filePath) { DesktopUtils.getIcon(window) }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
-                    if (iconName != null)
-                        CachedIcon(
-                            iconName,
-                            Modifier.padding(12.dp).size(64.dp)
-                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp)).clickable {
-                                    window.toggleMinimized()
-                                }
-                        )
+                Row(
+                    modifier = Modifier.background(
+                        Color.White, shape = RoundedCornerShape(8.dp)
+                    ).padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        window.title,
+                        fontSize = 16.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
 
-                    Row (
-                        modifier = Modifier.background(
-                            Color.White, shape = RoundedCornerShape(8.dp)
-                        ).padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp), horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            window.title,
-                            fontSize = 16.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center,
-                           modifier=  Modifier.padding(end = 8.dp)
-                        )
-
-                        Icon(rememberVectorPainter(FeatherIcons.X), "Exit process", Modifier.clickable {
-                            DesktopUtils.closeWindowsOfProcess(DesktopUtils.getWindowProcessId(window.hwnd)) }.requiredSize(16.dp))
+                    Icon(rememberVectorPainter(FeatherIcons.X), "Exit process", Modifier.clickable {
+                        DesktopUtils.closeWindowsOfProcess(DesktopUtils.getWindowProcessId(window.hwnd))
+                    }.requiredSize(16.dp))
 //                        Text("X", Modifier.padding(horizontal = 4.dp).clickable {
 //                            DesktopUtils.closeWindowsOfProcess(DesktopUtils.getWindowProcessId(window.hwnd))
 //                        })
-                    }
                 }
             }
         }

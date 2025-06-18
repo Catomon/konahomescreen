@@ -1,8 +1,10 @@
 package com.github.catomon.moewpaper
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.catomon.moewpaper.theme.AppTheme
 import com.github.catomon.moewpaper.theme.Colors
-import com.github.catomon.moewpaper.ui.BackgroundEffect
+import com.github.catomon.moewpaper.ui.Starfall
 import com.github.catomon.moewpaper.ui.BottomPanel
 import com.github.catomon.moewpaper.ui.Item
 import com.github.catomon.moewpaper.ui.ItemsGridList
@@ -104,12 +106,12 @@ internal fun App(
     DragAndDropContainer(
         state = dragAndDropState, Modifier.fillMaxSize()
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.background(color = Colors.mainBackground)) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Image(
                 key(backgroundPainter) {
                     backgroundPainter ?: painterResource(Res.drawable.konata)
                 },
-                "background",
+                null,
                 modifier = Modifier.fillMaxSize().alpha(appSettings.backgroundAlpha - 0.25f).blur(8.dp),
                 contentScale = ContentScale.FillWidth
             )
@@ -161,7 +163,7 @@ internal fun App(
                 }
 
                 if (appSettings.backgroundEffect)
-                    BackgroundEffect(imageResource(Res.drawable.star), Modifier.matchParentSize())
+                    Starfall(imageResource(Res.drawable.star), Modifier.matchParentSize())
 
                 Box(
                     Modifier.padding(start = 250.dp, end = 250.dp, bottom = 125.dp, top = 75.dp).clip(
@@ -269,7 +271,6 @@ fun Tabs(state: MoeViewModel, dragAndDropState: DragAndDropState<Item>) {
                         }
                         .padding(12.dp)
                         .weight(0.333f)
-
                         .dropTarget(
                             state = dragAndDropState,
                             key = text,
@@ -298,43 +299,38 @@ fun Tabs(state: MoeViewModel, dragAndDropState: DragAndDropState<Item>) {
             }
         }
 
-        Box(Modifier.fillMaxSize()) {
-            androidx.compose.animation.AnimatedVisibility(
-                selectedIndex == 0, enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                ItemsGridList(
-                    state.desktopItems,
-                    Modifier.fillMaxSize(),
-                    dragAndDropState,
-                    showNames = showItemNames
-                )
-            }
+        AnimatedContent(selectedIndex, transitionSpec = { fadeIn() togetherWith fadeOut() }, modifier = Modifier.fillMaxSize()) {
+            when (it) {
+                0 -> {
+                    ItemsGridList(
+                        state.desktopItems,
+                        Modifier.fillMaxSize(),
+                        dragAndDropState,
+                        showNames = showItemNames
+                    )
+                }
 
-            androidx.compose.animation.AnimatedVisibility(
-                selectedIndex == 1, enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                ItemsGridList(
-                    state.homeItems,
-                    Modifier.fillMaxSize(),
-                    dragAndDropState,
-                    onRemove = state::removeItemFromHome,
-                    showNames = showItemNames
-                )
-            }
+                1 -> {
+                    ItemsGridList(
+                        state.homeItems,
+                        Modifier.fillMaxSize(),
+                        dragAndDropState,
+                        onRemove = state::removeItemFromHome,
+                        showNames = showItemNames
+                    )
+                }
 
-            androidx.compose.animation.AnimatedVisibility(
-                selectedIndex == 2, enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                ItemsGridList(
-                    state.userItems,
-                    Modifier.fillMaxSize(),
-                    dragAndDropState,
-                    onRemove = state::removeItemFromUser,
-                    showNames = showItemNames
-                )
+                2 -> {
+                    ItemsGridList(
+                        state.userItems,
+                        Modifier.fillMaxSize(),
+                        dragAndDropState,
+                        onRemove = state::removeItemFromUser,
+                        showNames = showItemNames
+                    )
+                }
+
+                else -> error("not supposed")
             }
         }
     }

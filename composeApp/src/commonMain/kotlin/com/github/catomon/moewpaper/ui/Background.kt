@@ -7,7 +7,7 @@ import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,7 +18,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.rotate
 import com.github.catomon.moewpaper.theme.Colors
 import kotlinx.coroutines.Dispatchers
@@ -95,8 +94,8 @@ private suspend fun animateStar(star: Star) {
 }
 
 @Composable
-fun BackgroundEffect(image: ImageBitmap, modifier: Modifier = Modifier) {
-    BoxWithConstraints(
+fun Starfall(image: ImageBitmap, modifier: Modifier = Modifier) {
+    Box(
         modifier = modifier
     ) {
         val stars = remember {
@@ -108,17 +107,17 @@ fun BackgroundEffect(image: ImageBitmap, modifier: Modifier = Modifier) {
         val coroutineScope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
-//            stars.forEach {  star ->
-//                coroutineScope.launch {
-//                    while (true) {
-//                        star.rotation.animateTo(
-//                            targetValue = 360f,
-//                            animationSpec = tween(durationMillis = 2000, easing = LinearEasing)
-//                        )
-//                        star.rotation.snapTo(0f)
-//                    }
-//                }
-//            }
+            stars.forEach { star ->
+                coroutineScope.launch {
+                    while (true) {
+                        star.rotation.animateTo(
+                            targetValue = 360f,
+                            animationSpec = tween(durationMillis = 2000, easing = LinearEasing)
+                        )
+                        star.rotation.snapTo(0f)
+                    }
+                }
+            }
 
             stars.forEach {
                 coroutineScope.launch(Dispatchers.Default) {
@@ -136,7 +135,6 @@ fun BackgroundEffect(image: ImageBitmap, modifier: Modifier = Modifier) {
             while (true) {
                 stars.forEach {
                     if (it.y.value >= 1.1f) {
-//                        it.color = randomTint
                         coroutineScope.launch(Dispatchers.Default) {
                             animateStar(it)
                         }
@@ -148,8 +146,6 @@ fun BackgroundEffect(image: ImageBitmap, modifier: Modifier = Modifier) {
         }
 
         Canvas(Modifier.fillMaxSize()) {
-            drawIntoCanvas {  }
-
             val imageWidth = image.width.toFloat()
             val imageHeight = image.height.toFloat()
             val canvasWidth = size.width

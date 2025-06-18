@@ -68,6 +68,10 @@ class MoeViewModel() : ViewModel() {
                 file.toURI().toString(),
                 type
             )
+        }.groupBy { it.uri.takeLast(3) }.map { it.value }.flatten().sortedBy {
+            when {
+                it.type == ItemType.FOLDER -> 0; it.uri.endsWith(".lnk") -> 1; else -> 2
+            }
         })
 
         loadItems()
@@ -108,9 +112,21 @@ class MoeViewModel() : ViewModel() {
                 userStore.get() ?: error("Could not set userStore KStore.")
             }
 
-            bottomBarItems.addAll(storeItems)
-            homeItems.addAll(homeStoreItems)
-            userItems.addAll(userStoreItems)
+            bottomBarItems.addAll(storeItems.sortedBy {
+                when {
+                    it.type == ItemType.FOLDER -> 0; it.uri.endsWith(".lnk") -> 1; else -> 2
+                }
+            })
+            homeItems.addAll(homeStoreItems.sortedBy {
+                when {
+                    it.type == ItemType.FOLDER -> 0; it.uri.endsWith(".lnk") -> 1; else -> 2
+                }
+            })
+            userItems.addAll(userStoreItems.sortedBy {
+                when {
+                    it.type == ItemType.FOLDER -> 0; it.uri.endsWith(".lnk") -> 1; else -> 2
+                }
+            })
         }
     }
 
